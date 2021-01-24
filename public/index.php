@@ -18,6 +18,21 @@ $config['db']['dbname'] = DBNAME;
 // # create new Slim instance
 $app = new \Slim\App(['settings' => $config]);
 
+
+//------- CORS ----
+$app->options('/{routes:.+}', function ($request, $response, $args) {
+    return $response;
+});
+
+$app->add(function ($req, $res, $next) {
+    $response = $next($req, $res);
+    return $response
+            ->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+});
+//-------
+
 $contaniner = $app->getContainer();
 $contaniner["db"] = function($c) {
   $db = $c['settings']['db'];
@@ -47,6 +62,12 @@ $routesRecomendaciones($app);
 $routesUsuario($app);
 $routesBusquedas($app);
 
+
+
+//cors
+$app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function ($request, $response) {
+    throw new HttpNotFoundException($request);
+});
 
 $app->run();
 

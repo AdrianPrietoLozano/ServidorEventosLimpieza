@@ -118,7 +118,49 @@ class ParticipacionEventosDB {
             //exit($e->getMessage());
             return false;
         }
-    }      
+    }
+
+    public function findAllParticipantesEnEvento($idEvento) {
+        $sql = "
+            SELECT
+                A._id AS id,
+                A.nombre_usuario AS nombre,
+                A.correo AS email,
+                A.foto
+            FROM ambientalista AS A
+            JOIN participa_evento AS P
+                ON A._id = P.ambientalista_id
+            WHERE P.evento_id = :idEvento
+        ";
+
+        try {
+            $statement = $this->conexion->prepare($sql);
+            $statement->execute(["idEvento" => $idEvento]);
+
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            //exit($e->getMessage());
+            return array();
+        }
+    }
+
+    public function updatePuntosUsuarios($idsUsuarios, $puntos) {
+        $in = implode(",", array_fill(0, count($idsUsuarios), "?"));
+        $sql = "
+            UPDATE ambientalista
+            SET puntos = puntos + $puntos
+            WHERE _id IN ($in)
+        ";
+
+        try {
+            $statement = $this->conexion->prepare($sql);
+            $statement->execute($idsUsuarios);
+            return $statement->rowCount() > 0;
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
     
 }
 

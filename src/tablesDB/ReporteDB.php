@@ -190,6 +190,7 @@ class ReporteDB {
         }
     }
 
+
     public function reporteTieneLimpieza($idReporte) {
         $sql = "SELECT * FROM limpiezas WHERE reporte_id = :idReporte";
 

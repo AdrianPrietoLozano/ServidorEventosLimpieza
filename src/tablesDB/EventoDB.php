@@ -36,6 +36,7 @@ class EventoDB {
                 nombre_usuario AS nombre_creador,
                 ambientalista._id AS id_creador,
                 E.descripcion AS descripcion,
+                E.administrado AS administrado,
                 DATE_FORMAT(E.fecha_hora, '%d/%m/%Y') AS fecha,
                 DATE_FORMAT(E.fecha_hora, '%H:%i:%s') AS hora,
                 R.fotografia AS foto
@@ -60,6 +61,7 @@ class EventoDB {
                 $finalResult['fecha'] = $results["fecha"];
                 $finalResult['hora'] = $results["hora"];
                 $finalResult['foto'] = $results["foto"];
+                $finalResult['administrado'] = $results["administrado"];
                 $finalResult["creador"]['id'] = $results["id_creador"];
                 $finalResult["creador"]['nombre'] = $results["nombre_creador"];
             }
@@ -148,6 +150,41 @@ class EventoDB {
         } catch (\PDOException $e) {
             //exit($e->getMessage());
             return array();
+        }
+    }
+
+    // EL NOMBRE DE ESTA FUNCIÓN SE PUEDE MEJOARAR
+    public function setEventoAdministrado($idEvento, $administrado) {
+        $sql = "
+            UPDATE evento_limpieza
+            SET administrado = :administrado
+            WHERE _id = :idEvento
+        ";
+
+        try {
+            $statement = $this->conexion->prepare($sql);
+            $statement->execute([":administrado" => $administrado, "idEvento" => $idEvento]);
+            return $statement->rowCount() > 0;
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    public function isEventoAdministrado($idEvento) {
+        $sql = "
+            SELECT administrado
+            FROM evento_limpieza
+            WHERE _id = :idEvento
+        ";
+
+        try {
+            $statement = $this->conexion->prepare($sql);
+            $statement->execute(["idEvento" => $idEvento]);
+            $result = $statement->fetch(PDO::FETCH_ASSOC);
+
+            return $result["administrado"] == 1;
+        } catch (\PDOException $e) {
+            return true;
         }
     }
 

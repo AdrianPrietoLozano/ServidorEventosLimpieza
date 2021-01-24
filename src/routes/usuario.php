@@ -78,11 +78,12 @@ return function(App $app) {
     	$resultado = "0";
     	$mensaje = "Ocurrió un error";
 
-    	$id_token = $request->getParsedBody()["id_token"] ?? null;
+        if (!comprobarBodyParams($request, ["id_token", "fcm_token"])) {
+            return $response->withJson([$res => "0", $msg => "Datos incompletos"]);
+        }        
 
-    	if (is_null($id_token)){
-    		return $response->withJson(["resultado" => "0", "mensaje" => "No se recibió el id token"]);
-    	}
+    	$id_token = $request->getParsedBody()["id_token"];
+        $fcm_token = $request->getParsedBody()["fcm_token"];
 
     	$client = new Google_Client(["client_id" => CLIENT_ID]);
     	try {
@@ -97,7 +98,7 @@ return function(App $app) {
 
     		$idInsertado = -1;
 	    	if (!$userDB->existeUsuarioGoogle($userid)) { // si no existe el usuario
-	    		$idInsertado = $userDB->insert($playload["email"], $playload["name"], null, $playload["sub"]); // insertar usuario
+	    		$idInsertado = $userDB->insert($playload["email"], $playload["name"], null, $playload["sub"], fcm_token); // insertar usuario
 
 	    		if ($idInsertado == -1) {
 	    			return $response->withJson(["resultado" => "0", "mensaje" => "Error al insertar el usuario"]);

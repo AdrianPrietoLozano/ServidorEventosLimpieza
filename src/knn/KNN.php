@@ -1,16 +1,19 @@
 <?php
 
-require_once("RegistroKNN.php");
+//require_once("RegistroKNN.php");
 
 class KNN
 {
     private $datos = array();
-    private $etiquetas = array();
     
-    function __construct(&$datos, &$etiquetas)
+    function __construct(&$datos)
     {
         $this->datos = $datos;
-        $this->etiquetas = $etiquetas;
+
+        /*
+        DATOS
+        [[ID_ITEM1] => [...], [ID_ITEM2] => [...], ...]
+        */
     }
     
     private function determinarK()
@@ -20,7 +23,7 @@ class KNN
         $rawK = $root / 2;
         
         $num = round($rawK);
-        if($num % 2 == 0) // es par
+        if($num % 2 == 0)
         {
             $num--;
         }
@@ -31,55 +34,44 @@ class KNN
     
     // Se le pasan los datos para los cuales
     // se desean las recomendaciones.
-    // Devuelve un arreglo con los id's de los
-    // usuarios predecidos
+    // Devuelve un arreglo con las etiquetas predecidas
     public function getPredicciones(&$datosUsuario)
     {
         $distancias = array();
 
-        $numElementos = count($this->datos);
-        for($i = 0; $i < $numElementos; $i++)
-        {
-            $distancia = $this->getDistanciaEntre($datosUsuario, $this->datos[$i]);
-            $distancias[] = new RegistroKNN($this->etiquetas[$i], $distancia);
+        //$numElementos = count($this->datos);
+        foreach ($this->datos as $key => $value) {
+            $distancia = $this->distanciaEuclidiana($datosUsuario, $value);
+            $distancias[$key] = $distancia;
         }
 
-        usort($distancias, array("KNN", "ordenarElementos"));
+        /*
+        DISTANCIAS
+        [[ID_ITEM] => distancia, ...]
+        */
+
+        // ordenar de menor a mayor manteniendo asociación de índices
+        asort($distancias, SORT_NUMERIC);
 
         $k = $this->determinarK();
-        $ids_usuarios_predicciones = array();
-        for($i = 0; $i < $k; $i++)
-        {
-            $ids_usuarios_predicciones[] = $distancias[$i]->getIdUsuario();
-        }
-        
 
-        return $ids_usuarios_predicciones;
-    }
-
-    // ordena dos elementos tipo RegistroKNN
-    private static function ordenarElementos($a, $b)
-    {
-        if ($a->getDistancia() == $b->getDistancia()) {
-            return 0;
-        }
-        return ($a->getDistancia() < $b->getDistancia()) ? -1 : 1;
+        return array_keys(array_slice($distancias, 0, $k, true));
     }
     
     // devuelve la distancia entre dos usuarios
-    private function getDistanciaEntre(&$datos1, &$datos2)
+    private function distanciaEuclidiana(&$datos1, &$datos2)
     {
         $numElementos = count($datos1);
         $sumaCuadrados = 0.0;
 
         foreach(array_keys($datos1) as &$key)
         {
-            $a = pow($datos1[$key] - $datos2[$key], 2);
+            $a = pow(abs($datos1[$key] - $datos2[$key]), 2);
             
             $sumaCuadrados += $a;
         }
         
-        return abs(sqrt($sumaCuadrados));
+        return sqrt($sumaCuadrados);
     }
     
 }

@@ -4,13 +4,15 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Slim\App;
 
 require_once __DIR__ . "/../actualizarKNN.php";
+require_once __DIR__ . "/../tablesDB/ParticipacionEventosDB.php";
+require_once __DIR__ . "/../tablesDB/EventoDB.php";
 
 return function(App $app) {
 
     // obtiene todos los eventos activos donde participa el usuario
     $app->get('/participaciones/usuario/{idUsuario:[0-9]+}', function(Request $request, Response $response, array $args) {
 
-        $participacionesDB = new participacionEventosDB($this->db);
+        $participacionesDB = new ParticipacionEventosDB($this->db);
         $resultado = $participacionesDB->findAllParticipacionesUsuario($args["idUsuario"]);
 
         return $response->withJson($resultado);
@@ -28,7 +30,7 @@ return function(App $app) {
         $idUsuario = $request->getParsedBodyParam("idUsuario", $default = -1);
         $idEvento = $request->getParsedBodyParam("idEvento", $default = -1);
 
-        $participacionesDB = new participacionEventosDB($this->db);
+        $participacionesDB = new ParticipacionEventosDB($this->db);
 
         if($participacionesDB->participaEnEvento($idEvento, $idUsuario)) {
             $resultado = "2"; // el usuario ya participa en el evento
@@ -55,7 +57,7 @@ return function(App $app) {
         $resultado = "0";
         $mensaje = "Ocurrió un error";
 
-        $participacionesDB = new participacionEventosDB($this->db);
+        $participacionesDB = new ParticipacionEventosDB($this->db);
         if ($participacionesDB->delete($args["idUsuario"], $args["idEvento"])) {
             $resultado = "1";
             $mensaje = "Operación exitosa";            
@@ -70,10 +72,44 @@ return function(App $app) {
     // obtiene todos los usuarios que participan en el evento
     $app->get("/participaciones/evento/{idEvento:[0-9]+}", function(Request $request, Response $response, array $args) {
 
+    	$participacionesDB = new ParticipacionEventosDB($this->db);
+        $resultado = $participacionesDB->findAllParticipantesEnEvento($args["idEvento"]);
+
+        return $response->withJson($resultado);
+
     });
 
     // inserta los puntos de los usuario que participaron en el evento. Se recibe un array de ids de usuarios.
     $app->post("/participaciones/evento/{idEvento:[0-9]+}", function(Request $request, Response $response, array $args) {
+
+    	if (!comprobarBodyParams($request, ["idUsuario", "idsParticipantes"])) {
+            return $response->withJson(["resultado" => "0", "mensaje" => "Datos incompletos"]);
+        }
+
+        $idEvento = $args["idEvento"];
+        $idUsuario = $request->getParsedBodyParam("idUsuario");
+        $idsParticipantes = $request->getParsedBodyParam("idsParticipantes");
+        $puntos = 5;
+
+
+        $eventoDB = new EventoDB($this->db);
+    	if ($eventoDB->isEventoAdministrado($idEvento)) {
+    		return $response->withJson(["resultado" => "0", "mensaje" => "Error. Este evento ya ha sido administrado"]);
+    	}
+
+        $participacionesDB = new ParticipacionEventosDB($this->db);
+        if (!$participacionesDB->updatePuntosUsuarios($idsParticipantes, $puntos)) {
+        	return $response->withJson(["resultado" => "0", "mensaje" => "Ocurrió un error"]);
+        }
+
+        
+        $eventoDB->setEventoAdministrado($idEvento, true);
+
+        $puntosUsuario = in_array($idUsuario, $idsParticipantes) ? 5 : 0;
+
+        return $response->withJson(["resultado" => "1",
+        	"mensaje" => "Operación éxitosa",
+        	"puntos" => $puntosUsuario]);
 
     });
 }
