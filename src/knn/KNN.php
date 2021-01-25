@@ -53,6 +53,12 @@ class KNN
         // ordenar de menor a mayor manteniendo asociación de índices
         asort($distancias, SORT_NUMERIC);
 
+        /*
+        echo "<br><br>";
+        print_r($distancias);
+        echo "<br><br>";
+        */
+
         $k = $this->determinarK();
 
         return array_keys(array_slice($distancias, 0, $k, true));
@@ -75,5 +81,53 @@ class KNN
     }
     
 }
+
+
+/*
+Datos knn eventos usuario participa
+SELECT K.*
+FROM KNN as K
+JOIN participa_evento as P
+    ON P.ambientalista_id = :idUsuario AND K.evento_id = P.evento_id
+
+Ó
+
+====
+SELECT K.*
+FROM PRUEBA AS K
+JOIN (SELECT DISTINCT evento_id, created_at
+      FROM participa_evento
+      WHERE ambientalista_id = 1022) AS t2
+    ON K.evento_id = t2.evento_id
+ORDER BY t2.created_at DESC
+====
+
+------
+
+Datos knn eventos usuario NO participa
+SELECT DISTINCT K.*
+FROM KNN as K
+JOIN participa_evento as P
+    ON P.ambientalista_id != :idUsuario AND K.evento_id = P.evento_id
+
+
+SELECT K.*
+FROM PRUEBA as K
+WHERE K.evento_id NOT IN (SELECT DISTINCT evento_id FROM participa_evento WHERE ambientalista_id = 1022)
+
+Ó
+
+====
+Eventos que NO participa el usuario y que aún están activos
+SELECT K.*
+FROM PRUEBA AS K
+JOIN evento_limpieza AS E
+    ON (K.evento_id = E._id AND NOW() <= E.fecha_hora)
+LEFT JOIN participa_evento AS P
+    ON (P.evento_id = K.evento_id AND P.ambientalista_id = 1022)
+WHERE P.evento_id IS NULL
+====
+
+*/
 
 ?>

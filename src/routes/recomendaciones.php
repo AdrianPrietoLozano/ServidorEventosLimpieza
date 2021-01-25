@@ -9,14 +9,15 @@ return function(App $app) {
 
     $app->get('/recomendaciones/usuario/{idUsuario:[0-9]+}', function(Request $request, Response $response, array $args) {
 
-        $recomendaciones = obtenerRecomendaciones($args["idUsuario"], $this->db);
+        $recomendaciones = obtenerRecomendacionesUsuario($this->db, $args["idUsuario"]);
 
         return $response->withJson($recomendaciones);
     });
 
-    $app->get("/recomendaciones/evento/{idEvento:[0-9]+}", function(Request $request, Response $response, array $args) {
+    $app->get("/recomendaciones/evento/{idEvento:[0-9]+}/{idUsuario:[0-9]+}", function(Request $request, Response $response, array $args) {
 
-        return $response->write("falta por hacer");
+        $recomendaciones = obtenerRecomendacionesEvento($this->db, $args["idEvento"], $args["idUsuario"]);
+        return $response->withJson($recomendaciones);
     });
 
     $app->get("/recomendaciones", function(Request $request, Response $response, array $args) {

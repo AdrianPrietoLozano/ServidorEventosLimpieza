@@ -3,7 +3,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\App;
 
-require_once __DIR__ . "/../actualizarKNN.php";
+//require_once __DIR__ . "/../actualizarKNN.php";
 require_once __DIR__ . "/../tablesDB/ParticipacionEventosDB.php";
 require_once __DIR__ . "/../tablesDB/EventoDB.php";
 
@@ -39,7 +39,7 @@ return function(App $app) {
             if ($participacionesDB->insert($idUsuario, $idEvento) != -1) {
                 $resultado = "1";
                 $mensaje = "Operación exitosa";
-                actualizarKnnDesdeIdEvento($this->db, $idUsuario, $idEvento);
+                //actualizarKnnDesdeIdEvento($this->db, $idUsuario, $idEvento);
             } else {
                 $resultado = "0";
                 $mensaje = "Ocurrió un error.";

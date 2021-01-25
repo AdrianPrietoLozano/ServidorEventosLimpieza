@@ -5,7 +5,7 @@ use Slim\Http\UploadedFile;
 use Slim\App;
 
 require  __DIR__ . "/../tablesDB/ReporteDB.php";
-require_once __DIR__ . "/../actualizarKNN.php";
+//require_once __DIR__ . "/../actualizarKNN.php";
 
 return function(App $app) {
 
@@ -89,9 +89,10 @@ return function(App $app) {
                         $correcto = false;
                     }
 
+                    /*
                     if ($correcto) {
                         actualizarKnn($this->db, $ambientalistaId, $residuos, $volumen);
-                    }
+                    }*/
                 }
             }
         }
