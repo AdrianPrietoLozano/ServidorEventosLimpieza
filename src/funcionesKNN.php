@@ -1,4 +1,5 @@
 <?PHP
+/*
 require __DIR__ . "/knn/KNN.php";
 
 
@@ -131,7 +132,6 @@ function generarRecomendacionesEventos($conexion, &$idsEventos)
 }
 
 
-/* funcion personalizada */
 function obtenerQueryJsonEvento($conexion, $query)
 {
     try {
@@ -195,6 +195,6 @@ function &obtenerEventosMasPopulares($conexion, $id_ambientalista)
 
     return $json;
 }
-
+*/
 
 ?>

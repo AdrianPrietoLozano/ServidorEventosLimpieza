@@ -76,6 +76,7 @@ return function(App $app) {
                     $resultado = "1";
                     $mensaje = "Evento creado exitosamente.";
                     $json["id_evento"] = $id_evento;
+                    //insertar evento en KNN
                 }
             }
         }

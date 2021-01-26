@@ -3,20 +3,59 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\App;
 
-require __DIR__ . "/../funcionesKNN.php";
+//require __DIR__ . "/../funcionesKNN.php";
+require_once __DIR__ . "/../tablesDB/EventoDB.php";
+require_once __DIR__ . "/../tablesDB/KnnDB.php";
+require __DIR__ . "/../knn/KNN.php";
 
 return function(App $app) {
 
     $app->get('/recomendaciones/usuario/{idUsuario:[0-9]+}', function(Request $request, Response $response, array $args) {
+        $NUM_RECOMENDACIONES = 25;
 
-        $recomendaciones = obtenerRecomendacionesUsuario($this->db, $args["idUsuario"]);
+        $idUsuario = $args["idUsuario"];
+        $eventoDB = new EventoDB($this->db);
+        $knnDB = new KnnDB($this->db);
 
-        return $response->withJson($recomendaciones);
+        $participacionesUsuario = $knnDB->findAllEventosParticipaUsuario($idUsuario); // test
+        $datos = $knnDB->findAllDatosEventos($idUsuario); // train
+        if (empty($participacionesUsuario) || empty($datos)) {
+            return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
+        }
+        
+        $knn = new KNN($datos);
+        $predicciones = array();
+        foreach ($participacionesUsuario as $key => $value) {
+            if (count($predicciones) > $NUM_RECOMENDACIONES)
+                break;
+
+            $nuevasPredicciones = $knn->getPredicciones($value);
+            $predicciones = array_merge($predicciones, $nuevasPredicciones);
+        }
+
+        return $response->withJson($eventoDB->findAllEventosIn($predicciones));
     });
 
     $app->get("/recomendaciones/evento/{idEvento:[0-9]+}/{idUsuario:[0-9]+}", function(Request $request, Response $response, array $args) {
 
-        $recomendaciones = obtenerRecomendacionesEvento($this->db, $args["idEvento"], $args["idUsuario"]);
+        $idUsuario = $args["idUsuario"];
+        $idEvento = $args["idEvento"];
+        $eventoDB = new EventoDB($this->db);
+        $knnDB = new KnnDB($this->db);
+
+        $datosEvento = $knnDB->find($idEvento); // test
+        $datos = $knnDB->findAllDatosEventos($idUsuario); // train
+
+        if (empty($datosEvento) || empty($datos)) {
+            return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
+        }
+
+        $knn = new KNN($datos);
+        $predicciones = $knn->getPredicciones($datosEvento);
+        $recomendaciones = $eventoDB->findAllEventosIn($predicciones);
+        if (!empty($recomendaciones) && reset($recomendaciones)["id_evento"] == $idEvento)
+            array_shift($recomendaciones); // eliminar el primer elemento porque es el mismo que idEvento
+        
         return $response->withJson($recomendaciones);
     });
 

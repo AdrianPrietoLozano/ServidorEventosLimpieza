@@ -127,7 +127,7 @@ class EventoDB {
         }
     }
 
-    function findAllEventosUsuario($idUsuario) {
+    public function findAllEventosUsuario($idUsuario) {
         $sql = "
             SELECT
                 E._id AS id_evento,
@@ -146,6 +146,65 @@ class EventoDB {
         try {
             $statement = $this->conexion->prepare($sql);
             $statement->execute([":idUsuario" => $idUsuario]);
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            //exit($e->getMessage());
+            return array();
+        }
+    }
+
+    // retorna los eventos más populares en donde no participa el usuario
+    public function findAllEventosPopulares($idUsuario) {
+        $query = "
+            SELECT
+                evento._id AS id_evento,
+                evento.titulo AS titulo,
+                DATE_FORMAT(evento.fecha_hora, '%d-%m-%Y') AS fecha,
+                DATE_FORMAT(evento.fecha_hora, '%H:%i') AS hora,
+                reporte.fotografia AS foto
+            FROM participa_evento
+            JOIN evento_limpieza AS evento
+                ON participa_evento.evento_id = evento._id
+            JOIN reporte_contaminacion AS reporte
+                ON evento.reporte_id = reporte._id
+            WHERE NOW() <= evento.fecha_hora
+                AND evento._id NOT IN
+                    (SELECT evento_id
+                    FROM participa_evento
+                    WHERE ambientalista_id = {$idUsuario})
+            GROUP BY id_evento
+            ORDER BY COUNT(*) DESC
+            LIMIT 20;
+        ";
+
+        try {
+            $statement = $this->conexion->query($query);
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            //echo $e->getMessage();
+            return array();
+        }
+    }
+
+    // retorna los eventos en los que el id esta en idsEventos
+    public function findAllEventosIn($idsEventos) {
+        $json = array();
+        $ids = join(', ', $idsEventos);
+        
+        $select = "
+            SELECT
+                evento._id AS id_evento,
+                evento.titulo AS titulo,
+                DATE_FORMAT(evento.fecha_hora, '%d-%m-%Y') AS fecha,
+                DATE_FORMAT(evento.fecha_hora, '%H:%i') AS hora,
+                reporte.fotografia AS foto
+            FROM evento_limpieza AS evento
+            JOIN reporte_contaminacion AS reporte
+                ON evento.reporte_id = reporte._id AND evento._id IN ($ids)
+        ";
+
+        try {
+            $statement = $this->conexion->query($select);
             return $statement->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             //exit($e->getMessage());

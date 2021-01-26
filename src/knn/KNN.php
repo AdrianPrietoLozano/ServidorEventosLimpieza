@@ -41,8 +41,13 @@ class KNN
 
         //$numElementos = count($this->datos);
         foreach ($this->datos as $key => $value) {
+            /*echo "<br><br>DISTANCIA<br><br>";
+            echo implode(", ", $datosUsuario);
+            echo "<br>";
+            echo implode(", ", $value);*/
             $distancia = $this->distanciaEuclidiana($datosUsuario, $value);
             $distancias[$key] = $distancia;
+            //echo "<br>Distancia $distancia <br>";
         }
 
         /*
@@ -55,9 +60,10 @@ class KNN
 
         /*
         echo "<br><br>";
-        print_r($distancias);
-        echo "<br><br>";
-        */
+        echo implode(", ", array_keys($distancias));
+        echo "<br><br>";*/
+        
+        
 
         $k = $this->determinarK();
 
