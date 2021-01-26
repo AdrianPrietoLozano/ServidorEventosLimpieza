@@ -38,8 +38,7 @@ class KnnDB {
             FROM KNN AS K
             JOIN evento_limpieza AS E
                 ON (K.evento_id = E._id AND NOW() <= E.fecha_hora)
-            LEFT JOIN participa_evento AS P
-                ON (P.evento_id = K.evento_id AND P.ambientalista_id = :idUsuario)
+            LEFT JOIN (SELECT DISTINCT evento_id FROM participa_evento AS PA WHERE PA.ambientalista_id = :idUsuario) AS P ON K.evento_id = P.evento_id
             WHERE P.evento_id IS NULL
         ";
 

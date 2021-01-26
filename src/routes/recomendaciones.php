@@ -18,8 +18,12 @@ return function(App $app) {
         $knnDB = new KnnDB($this->db);
 
         $participacionesUsuario = $knnDB->findAllEventosParticipaUsuario($idUsuario); // test
+        if (empty($participacionesUsuario)) {
+            return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
+        }
+
         $datos = $knnDB->findAllDatosEventos($idUsuario); // train
-        if (empty($participacionesUsuario) || empty($datos)) {
+        if (empty($datos)) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
         
@@ -44,17 +48,21 @@ return function(App $app) {
         $knnDB = new KnnDB($this->db);
 
         $datosEvento = $knnDB->find($idEvento); // test
-        $datos = $knnDB->findAllDatosEventos($idUsuario); // train
+        if (empty($datosEvento)) {
+            return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
+        }
 
-        if (empty($datosEvento) || empty($datos)) {
+        $datos = $knnDB->findAllDatosEventos($idUsuario); // train
+        if (empty($datos)) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
 
         $knn = new KNN($datos);
         $predicciones = $knn->getPredicciones($datosEvento);
+        if (!empty($predicciones) && reset($predicciones) == $idEvento)
+            array_shift($predicciones); // eliminar el primer elemento porque es el mismo que idEvento
+
         $recomendaciones = $eventoDB->findAllEventosIn($predicciones);
-        if (!empty($recomendaciones) && reset($recomendaciones)["id_evento"] == $idEvento)
-            array_shift($recomendaciones); // eliminar el primer elemento porque es el mismo que idEvento
         
         return $response->withJson($recomendaciones);
     });

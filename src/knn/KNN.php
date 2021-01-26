@@ -65,7 +65,8 @@ class KNN
         
         
 
-        $k = $this->determinarK();
+        $k = 5; //$this->determinarK();
+        //echo "<br>$k<br>";
 
         return array_keys(array_slice($distancias, 0, $k, true));
     }
@@ -133,6 +134,18 @@ LEFT JOIN participa_evento AS P
     ON (P.evento_id = K.evento_id AND P.ambientalista_id = 1022)
 WHERE P.evento_id IS NULL
 ====
+
+
+
+$query = "
+            SELECT K.*
+            FROM KNN AS K
+            JOIN evento_limpieza AS E
+                ON (K.evento_id = E._id AND NOW() <= E.fecha_hora)
+            LEFT JOIN (SELECT DISTINCT evento_id FROM participa_evento AS PA WHERE PA.ambientalista_id = 1404) AS P ON K.evento_id = P.evento_id
+            WHERE P.evento_id IS NULL
+
+        ";
 
 */
 
