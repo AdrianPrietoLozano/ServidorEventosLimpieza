@@ -224,7 +224,7 @@ class EventoDB {
     // retorna los eventos en los que el id esta en idsEventos
     public function findAllEventosIn($idsEventos) {
         $json = array();
-        $ids = join(', ', $idsEventos);
+        $ids = join(", ", $idsEventos);
         
         $select = "
             SELECT

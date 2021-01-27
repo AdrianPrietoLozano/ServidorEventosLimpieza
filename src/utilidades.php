@@ -34,15 +34,16 @@ function normalizar(&$datos, $min_max) {
         });
 }
 
-function obtenerPredicciones($entrenamiento, $prueba, $k) {
+function obtenerRecomendaciones($entrenamiento, $prueba, $k, $limite = 20) {
     $knn = new KNN($entrenamiento);
-    $predicciones = array();
+    $recomendaciones = array();
     foreach ($prueba as $key => $value) {
-        $nuevasPredicciones = $knn->getPredicciones($value, $k);
-        $predicciones = array_merge($predicciones, $nuevasPredicciones);
+        if (count($recomendaciones) > $limite) break;
+        $nuevasRecomendaciones = $knn->getPredicciones($value, $k);
+        $recomendaciones = array_unique(array_merge($recomendaciones, $nuevasRecomendaciones), SORT_NUMERIC);
     }
 
-    return $predicciones;
+    return $recomendaciones;
 }
 
 function sendNotification($targets, $titulo, $mensaje){

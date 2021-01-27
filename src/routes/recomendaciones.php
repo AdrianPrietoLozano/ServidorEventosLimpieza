@@ -18,7 +18,7 @@ return function(App $app) {
         $knnDB = new KnnDB($this->db);
 
         $participacionesUsuario = $knnDB->findAllEventosParticipaUsuario($idUsuario); // test
-        $participacionesUsuario = array_slice($participacionesUsuario, 0, 5, true);
+        $participacionesUsuario = array_slice($participacionesUsuario, 0, 8, true);
         if (empty($participacionesUsuario)) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
@@ -35,7 +35,7 @@ return function(App $app) {
             normalizar($participacionesUsuario, $min_max);
         }
 
-        $predicciones = obtenerPredicciones($datos, $participacionesUsuario, 5);
+        $predicciones = obtenerRecomendaciones($datos, $participacionesUsuario, 5, 25);
         return $response->withJson($eventoDB->findAllEventosIn($predicciones));
     });
 
@@ -63,7 +63,7 @@ return function(App $app) {
             normalizar($datosEvento, $min_max);
         }
 
-        $predicciones = obtenerPredicciones($datos, $datosEvento, 11);
+        $predicciones = obtenerRecomendaciones($datos, $datosEvento, 11, 15);
         if (!empty($predicciones) && reset($predicciones) == $idEvento)
             array_shift($predicciones); // eliminar el primer elemento porque es el mismo que idEvento
 
