@@ -3,8 +3,10 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\App;
 
-require  __DIR__ . "/../tablesDB/EventoDB.php";
-require  __DIR__ . "/../tablesDB/ParticipacionEventosDB.php";
+require_once  __DIR__ . "/../tablesDB/EventoDB.php";
+require_once  __DIR__ . "/../tablesDB/ReporteDB.php";
+require_once  __DIR__ . "/../tablesDB/KnnDB.php";
+require_once  __DIR__ . "/../tablesDB/ParticipacionEventosDB.php";
 
 return function(App $app) {
 
@@ -65,18 +67,29 @@ return function(App $app) {
                 $mensaje = "Ya existe un evento para ese reporte.";
 
             } else {
-                $id_evento = $eventoDB->insert($request->getParsedBodyParam($queryParams[0]),
-                    $request->getParsedBodyParam($queryParams[1]),
-                    $request->getParsedBodyParam($queryParams[2]),
-                    $request->getParsedBodyParam($queryParams[3]),
-                    $request->getParsedBodyParam($queryParams[4]),
-                    $request->getParsedBodyParam($queryParams[5]));
+                $ambientalista_id = $request->getParsedBodyParam($queryParams[0]);
+                $reporte_id = $request->getParsedBodyParam($queryParams[1]);
+                $titulo = $request->getParsedBodyParam($queryParams[2]);
+                $fecha = $request->getParsedBodyParam($queryParams[3]);
+                $hora = $request->getParsedBodyParam($queryParams[4]);
+                $descripcion = $request->getParsedBodyParam($queryParams[5]);
+
+                $id_evento = $eventoDB->insert($ambientalista_id, $reporte_id, $titulo,
+                    $fecha, $hora, $descripcion);
 
                 if ($id_evento != -1) {
                     $resultado = "1";
                     $mensaje = "Evento creado exitosamente.";
                     $json["id_evento"] = $id_evento;
-                    //insertar evento en KNN
+
+                    $reporteDB = new ReporteDB($this->db);
+                    $knnDB = new KnnDB($this->db);
+
+                    try { // insertar en tabla KNN
+                        $datosReporte = $reporteDB->find($request->getParsedBodyParam($queryParams[1]));
+                        $insertado = $knnDB->insert($id_evento, $datosReporte["residuos"],
+                            $datosReporte["volumen"], str_replace("/", "-", $fecha), $hora);
+                    } catch (Exception $e) {}
                 }
             }
         }

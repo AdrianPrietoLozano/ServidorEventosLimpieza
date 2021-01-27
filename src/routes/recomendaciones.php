@@ -6,7 +6,8 @@ use Slim\App;
 //require __DIR__ . "/../funcionesKNN.php";
 require_once __DIR__ . "/../tablesDB/EventoDB.php";
 require_once __DIR__ . "/../tablesDB/KnnDB.php";
-require __DIR__ . "/../knn/KNN.php";
+require_once __DIR__ . "/../knn/KNN.php";
+require_once __DIR__ . "/../utilidades.php";
 
 return function(App $app) {
 
@@ -25,6 +26,13 @@ return function(App $app) {
         $datos = $knnDB->findAllDatosEventos($idUsuario); // train
         if (empty($datos)) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
+        }
+        
+        // normalizar datos
+        $min_max = $knnDB->findAllMinMaxValues();
+        if (!empty($min_max)) {
+            normalizar($datos, $min_max);
+            normalizar($participacionesUsuario, $min_max);
         }
         
         $knn = new KNN($datos);
@@ -47,8 +55,8 @@ return function(App $app) {
         $eventoDB = new EventoDB($this->db);
         $knnDB = new KnnDB($this->db);
 
-        $datosEvento = $knnDB->find($idEvento); // test
-        if (empty($datosEvento)) {
+        $datosEvento[0] = $knnDB->find($idEvento); // test
+        if (empty($datosEvento[0])) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
 
@@ -57,8 +65,16 @@ return function(App $app) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
 
+        // normalizar datos
+        $min_max = $knnDB->findAllMinMaxValues();
+        normalizar($datos, $min_max);
+        normalizar($datosEvento, $min_max);
+        //normalizar($datosEvento, $min_max);
+
+        
+
         $knn = new KNN($datos);
-        $predicciones = $knn->getPredicciones($datosEvento);
+        $predicciones = $knn->getPredicciones($datosEvento[0]);
         if (!empty($predicciones) && reset($predicciones) == $idEvento)
             array_shift($predicciones); // eliminar el primer elemento porque es el mismo que idEvento
 
@@ -69,6 +85,15 @@ return function(App $app) {
 
     $app->get("/recomendaciones", function(Request $request, Response $response, array $args) {
 
+        $date = strtotime("11-01-2021 18:00");
+
+        echo date("n", $date);
+        echo "<br>";
+        //echo date("n", $date);
+        //echo "<br>";
+        //echo date("H", $date);
+
+        /*
         $query = "
             SELECT * from KNN
         ";
@@ -110,8 +135,8 @@ return function(App $app) {
             echo "mal";
             return array();
         }
+        */
     });
-
 
 }
 

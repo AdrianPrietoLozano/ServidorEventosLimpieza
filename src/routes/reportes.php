@@ -4,7 +4,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Http\UploadedFile;
 use Slim\App;
 
-require  __DIR__ . "/../tablesDB/ReporteDB.php";
+require_once  __DIR__ . "/../tablesDB/ReporteDB.php";
 //require_once __DIR__ . "/../actualizarKNN.php";
 
 return function(App $app) {

@@ -25,6 +25,15 @@ function ejecutarFetchQuery($conexion, $query, $params, $returnError) {
     }
 }
 
+function normalizar(&$datos, $min_max) {
+    array_walk($datos, function (&$value, $key) use ($min_max) {
+        array_walk($value, function (&$val, $clave) use ($min_max) {
+            if ($min_max[$clave]["max"] === $min_max[$clave]["min"]) return; // validar division por zero
+                $val = ($val - $min_max[$clave]["min"]) / ($min_max[$clave]["max"] - $min_max[$clave]["min"]);
+            });
+        });
+}
+
 function sendNotification($targets, $titulo, $mensaje){
     //API URL of FCM
     $url = 'https://fcm.googleapis.com/fcm/send';
