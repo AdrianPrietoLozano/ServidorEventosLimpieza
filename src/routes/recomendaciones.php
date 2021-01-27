@@ -12,13 +12,13 @@ require_once __DIR__ . "/../utilidades.php";
 return function(App $app) {
 
     $app->get('/recomendaciones/usuario/{idUsuario:[0-9]+}', function(Request $request, Response $response, array $args) {
-        $NUM_RECOMENDACIONES = 25;
 
         $idUsuario = $args["idUsuario"];
         $eventoDB = new EventoDB($this->db);
         $knnDB = new KnnDB($this->db);
 
         $participacionesUsuario = $knnDB->findAllEventosParticipaUsuario($idUsuario); // test
+        $participacionesUsuario = array_slice($participacionesUsuario, 0, 5, true);
         if (empty($participacionesUsuario)) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
@@ -34,17 +34,8 @@ return function(App $app) {
             normalizar($datos, $min_max);
             normalizar($participacionesUsuario, $min_max);
         }
-        
-        $knn = new KNN($datos);
-        $predicciones = array();
-        foreach ($participacionesUsuario as $key => $value) {
-            if (count($predicciones) > $NUM_RECOMENDACIONES)
-                break;
 
-            $nuevasPredicciones = $knn->getPredicciones($value);
-            $predicciones = array_merge($predicciones, $nuevasPredicciones);
-        }
-
+        $predicciones = obtenerPredicciones($datos, $participacionesUsuario, 5);
         return $response->withJson($eventoDB->findAllEventosIn($predicciones));
     });
 
@@ -67,28 +58,20 @@ return function(App $app) {
 
         // normalizar datos
         $min_max = $knnDB->findAllMinMaxValues();
-        normalizar($datos, $min_max);
-        normalizar($datosEvento, $min_max);
-        //normalizar($datosEvento, $min_max);
+        if (!empty($min_max)) {
+            normalizar($datos, $min_max);
+            normalizar($datosEvento, $min_max);
+        }
 
-        
-
-        $knn = new KNN($datos);
-        $predicciones = $knn->getPredicciones($datosEvento[0]);
+        $predicciones = obtenerPredicciones($datos, $datosEvento, 11);
         if (!empty($predicciones) && reset($predicciones) == $idEvento)
             array_shift($predicciones); // eliminar el primer elemento porque es el mismo que idEvento
 
-        $recomendaciones = $eventoDB->findAllEventosIn($predicciones);
         
-        return $response->withJson($recomendaciones);
+        return $response->withJson($eventoDB->findAllEventosIn($predicciones));
     });
 
     $app->get("/recomendaciones", function(Request $request, Response $response, array $args) {
-
-        $date = strtotime("11-01-2021 18:00");
-
-        echo date("n", $date);
-        echo "<br>";
         //echo date("n", $date);
         //echo "<br>";
         //echo date("H", $date);

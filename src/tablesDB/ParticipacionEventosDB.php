@@ -30,7 +30,7 @@ class ParticipacionEventosDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idUsuario" => $idUsuario]);
+            $statement->execute([":idUsuario" => $idUsuario]);
 
             $json = array();
             while ($row = $statement->fetch(\PDO::FETCH_ASSOC)) {
@@ -53,7 +53,7 @@ class ParticipacionEventosDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $params = ["idUsuario" => $idUsuario, "idEvento" => $idEvento];
+            $params = [":idUsuario" => $idUsuario, ":idEvento" => $idEvento];
             if ($statement->execute($params)) {
                 return $this->conexion->lastInsertId();
             }
@@ -74,7 +74,7 @@ class ParticipacionEventosDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idUsuario" => $idUsuario, "idEvento" => $idEvento]);
+            $statement->execute([":idUsuario" => $idUsuario, ":idEvento" => $idEvento]);
             return $statement->rowCount() > 0;
         } catch (\PDOException $e) {
             echo $e->getMessage();
@@ -94,7 +94,7 @@ class ParticipacionEventosDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idEvento" => $idEvento]);
+            $statement->execute([":idEvento" => $idEvento]);
             return $statement->fetch(\PDO::FETCH_ASSOC)["personas_unidas"];
         } catch (\PDOException $e) {
             //exit($e->getMessage());
@@ -112,7 +112,7 @@ class ParticipacionEventosDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idUsuario" => $idUsuario, "idEvento" => $idEvento]);
+            $statement->execute([":idUsuario" => $idUsuario, ":idEvento" => $idEvento]);
             return $statement->fetchColumn() > 0;
         } catch (\PDOException $e) {
             //exit($e->getMessage());
@@ -135,7 +135,7 @@ class ParticipacionEventosDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idEvento" => $idEvento]);
+            $statement->execute([":idEvento" => $idEvento]);
 
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;

@@ -35,7 +35,7 @@ class KNN
     // Se le pasan los datos para los cuales
     // se desean las recomendaciones.
     // Devuelve un arreglo con las etiquetas predecidas
-    public function getPredicciones(&$datosUsuario)
+    public function getPredicciones(&$datosUsuario, $k = NULL)
     {
         $distancias = array();
 
@@ -64,8 +64,9 @@ class KNN
         echo "<br><br>";*/
         
         
-
-        $k = 5; //$this->determinarK();
+        if (!$k) {
+            $k = $this->determinarK();
+        }
         //echo "<br>$k<br>";
 
         return array_keys(array_slice($distancias, 0, $k, true));

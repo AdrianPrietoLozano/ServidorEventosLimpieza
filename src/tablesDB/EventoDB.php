@@ -50,7 +50,7 @@ class EventoDB {
 
         try {
             $statement = $this->conexion->prepare($query);
-            $statement->execute(["idEvento" => $id]);
+            $statement->execute([":idEvento" => $id]);
             $results = $statement->fetch(\PDO::FETCH_ASSOC);
             $finalResult = array();
             if ($results) {
@@ -91,7 +91,7 @@ class EventoDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["titulo" => "%".$titulo."%"]);
+            $statement->execute([":titulo" => "%".$titulo."%"]);
             return $statement->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             return array();
@@ -179,9 +179,44 @@ class EventoDB {
 
         try {
             $statement = $this->conexion->query($query);
-            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            if (count($results) === 0) {
+                return $this->findFirstEventos($idUsuario, 20);
+            }
+
+            return $results;
         } catch (\PDOException $e) {
             //echo $e->getMessage();
+            return $this->findFirstEventos($idUsuario, 20);
+        }
+    }
+
+    // retorna los primeros 20 eventos en donde no participa el usuario
+    private function findFirstEventos($idUsuario) {
+        $query = "
+            SELECT
+                evento._id AS id_evento,
+                evento.titulo AS titulo,
+                DATE_FORMAT(evento.fecha_hora, '%d-%m-%Y') AS fecha,
+                DATE_FORMAT(evento.fecha_hora, '%H:%i') AS hora,
+                reporte.fotografia AS foto
+            FROM evento_limpieza AS evento
+            JOIN reporte_contaminacion AS reporte
+                ON evento.reporte_id = reporte._id
+            WHERE NOW() <= evento.fecha_hora
+                AND evento._id
+                    NOT IN (SELECT evento_id
+                            FROM participa_evento
+                            WHERE ambientalista_id = :idUsuario)
+            LIMIT 20
+        ";
+
+        try {
+            $statement = $this->conexion->prepare($query);
+            $statement->execute([":idUsuario" => $idUsuario]);
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            echo $e->getMessage();
             return array();
         }
     }
@@ -222,7 +257,7 @@ class EventoDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute([":administrado" => $administrado, "idEvento" => $idEvento]);
+            $statement->execute([":administrado" => $administrado, ":idEvento" => $idEvento]);
             return $statement->rowCount() > 0;
         } catch (\PDOException $e) {
             return false;
@@ -238,7 +273,7 @@ class EventoDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idEvento" => $idEvento]);
+            $statement->execute([":idEvento" => $idEvento]);
             $result = $statement->fetch(PDO::FETCH_ASSOC);
 
             return $result["administrado"] == 1;
@@ -253,7 +288,7 @@ class EventoDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idReporte" => $idReporte]);
+            $statement->execute([":idReporte" => $idReporte]);
             return $statement->fetchColumn() > 0;
         } catch (\PDOException $e) {
             //exit($e->getMessage());

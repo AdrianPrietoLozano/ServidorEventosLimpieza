@@ -33,7 +33,7 @@ class UsuarioDB {
             return array();
         }*/
 
-        return ejecutarFetchQuery($this->conexion, $sql, ["idUsuario" => $id], array());
+        return ejecutarFetchQuery($this->conexion, $sql, [":idUsuario" => $id], array());
 
     }
 
@@ -55,7 +55,7 @@ class UsuarioDB {
 
         
 
-        return ejecutarFetchQuery($this->conexion, $sql, ["email" => $email], array());
+        return ejecutarFetchQuery($this->conexion, $sql, [":email" => $email], array());
     }
 
     // busca usuario por email y contraseña
@@ -76,7 +76,7 @@ class UsuarioDB {
             return array();
         }*/
 
-        return ejecutarFetchQuery($this->conexion, $sql, ["email" => $email, "contrasenia" => $contrasenia], array());
+        return ejecutarFetchQuery($this->conexion, $sql, [":email" => $email, ":contrasenia" => $contrasenia], array());
     }
 
     public function findByGoogleID($googleID) {
@@ -95,7 +95,7 @@ class UsuarioDB {
             return array();
         }*/
 
-        return ejecutarFetchQuery($this->conexion, $sql, ["googleID" => $googleID], array());
+        return ejecutarFetchQuery($this->conexion, $sql, [":googleID" => $googleID], array());
     }
 
     public function insert($email, $nombre, $contrasenia, $googleID, $fcmToken) {
@@ -106,7 +106,7 @@ class UsuarioDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $params = ["email" => $email, "nombre" => $nombre, "contrasenia" => $contrasenia, "googleID" => $googleID, "fcmToken" => $fcmToken];
+            $params = [":email" => $email, ":nombre" => $nombre, ":contrasenia" => $contrasenia, ":googleID" => $googleID, ":fcmToken" => $fcmToken];
             if ($statement->execute($params)) {
                 return $this->conexion->lastInsertId();
             }
@@ -126,7 +126,7 @@ class UsuarioDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["token" => $token, "correo" => $email]);
+            $statement->execute([":token" => $token, ":correo" => $email]);
             return $statement->rowCount() > 0;
         } catch (\PDOException $e) {
             //echo $statement->errorInfo()[2];
@@ -145,7 +145,7 @@ class UsuarioDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["email" => $email]);
+            $statement->execute([":email" => $email]);
             return $statement->fetchColumn() > 0;
         } catch (\PDOException $e) {
             //echo $statement->errorInfo()[2];
@@ -162,7 +162,7 @@ class UsuarioDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idUsuario" => $id]);
+            $statement->execute([":idUsuario" => $id]);
             return $statement->fetchColumn() > 0;
         } catch (\PDOException $e) {
             return false;
@@ -178,7 +178,7 @@ class UsuarioDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["googleID" => $googleID]);
+            $statement->execute([":googleID" => $googleID]);
             return $statement->fetchColumn() > 0;
         } catch (\PDOException $e) {
             //echo $statement->errorInfo()[2];

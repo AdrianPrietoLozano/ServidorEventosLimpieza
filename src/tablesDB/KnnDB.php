@@ -22,7 +22,7 @@ class KnnDB {
 
         try {
             $statement = $this->conexion->prepare($query);
-            $statement->execute(["idUsuario" => $idUsuario]);
+            $statement->execute([":idUsuario" => $idUsuario]);
             return $statement->fetchAll(\PDO::FETCH_UNIQUE | \PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             //exit($e->getMessage());
@@ -44,7 +44,7 @@ class KnnDB {
 
         try {
             $statement = $this->conexion->prepare($query);
-            $statement->execute(["idUsuario" => $idUsuario]);
+            $statement->execute([":idUsuario" => $idUsuario]);
             return $statement->fetchAll(\PDO::FETCH_UNIQUE | \PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             //exit($e->getMessage());
@@ -58,7 +58,7 @@ class KnnDB {
 
         try {
             $statement = $this->conexion->prepare($query);
-            $statement->execute(["idEvento" => $idEvento]);
+            $statement->execute([":idEvento" => $idEvento]);
             $datos = $statement->fetch(\PDO::FETCH_ASSOC);
             unset($datos["evento_id"]);
             return $datos;
@@ -98,20 +98,20 @@ class KnnDB {
             "Más grande" => 6
         );
 
-        $values = ["idEvento" => $idEvento, "volumen" => $volumenesResiduos[$volumen]];
+        $values = [":idEvento" => $idEvento, ":volumen" => $volumenesResiduos[$volumen]];
 
         foreach ($nombresResiduos as $key => $residuo) {
             if (in_array($key, $residuos)) {
-                $values[$residuo] = 1;
+                $values[":$residuo"] = 1;
             } else {
-                $values[$residuo] = 0;
+                $values[":$residuo"] = 0;
             }
         }
 
         $date = strtotime("$fecha $hora");
-        $values["dia_semana"] = date("w", $date);
-        $values["mes_anio"] = date("n", $date);
-        $values["hora_dia"] = date("H", $date);
+        $values[":dia_semana"] = date("w", $date);
+        $values[":mes_anio"] = date("n", $date);
+        $values[":hora_dia"] = date("H", $date);
 
         try {
             $statement = $this->conexion->prepare($insert);

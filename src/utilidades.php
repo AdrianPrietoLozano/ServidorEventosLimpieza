@@ -34,6 +34,17 @@ function normalizar(&$datos, $min_max) {
         });
 }
 
+function obtenerPredicciones($entrenamiento, $prueba, $k) {
+    $knn = new KNN($entrenamiento);
+    $predicciones = array();
+    foreach ($prueba as $key => $value) {
+        $nuevasPredicciones = $knn->getPredicciones($value, $k);
+        $predicciones = array_merge($predicciones, $nuevasPredicciones);
+    }
+
+    return $predicciones;
+}
+
 function sendNotification($targets, $titulo, $mensaje){
     //API URL of FCM
     $url = 'https://fcm.googleapis.com/fcm/send';

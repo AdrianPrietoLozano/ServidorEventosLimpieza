@@ -42,7 +42,7 @@ class ReporteDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idReporte" => $id]);
+            $statement->execute([":idReporte" => $id]);
             $results = $statement->fetch(\PDO::FETCH_ASSOC);
             if ($results) {
                 $results["residuos"] = $this->obtenerResiduosReporte($id);
@@ -105,10 +105,10 @@ class ReporteDB {
             $this->conexion->beginTransaction();
 
             $statement = $this->conexion->prepare($sql1);
-            $statement->execute(["idReporte" => $id]);
+            $statement->execute([":idReporte" => $id]);
 
             $statement = $this->conexion->prepare($sql2);
-            $statement->execute(["idReporte" => $id]);
+            $statement->execute([":idReporte" => $id]);
 
             $this->conexion->commit();
 
@@ -138,7 +138,7 @@ class ReporteDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idUsuario" => $idUsuario]);
+            $statement->execute([":idUsuario" => $idUsuario]);
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {
@@ -181,7 +181,7 @@ class ReporteDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idReporte" => $idReporte]);
+            $statement->execute([":idReporte" => $idReporte]);
             $results = array_column($statement->fetchAll(\PDO::FETCH_OBJ), "tipo");
             return $results;
         } catch (\PDOException $e) {
@@ -196,7 +196,7 @@ class ReporteDB {
 
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["idReporte" => $idReporte]);
+            $statement->execute([":idReporte" => $idReporte]);
             return $statement->fetchColumn() > 0;
         } catch (\PDOException $e) {
             //exit($e->getMessage());
@@ -209,7 +209,7 @@ class ReporteDB {
         
         try {
             $statement = $this->conexion->prepare($sql);
-            $statement->execute(["volumen" => $volumen]);
+            $statement->execute([":volumen" => $volumen]);
             $resultado = $statement->fetch(\PDO::FETCH_ASSOC);
             if ($resultado) {
                 return $resultado["id"];
