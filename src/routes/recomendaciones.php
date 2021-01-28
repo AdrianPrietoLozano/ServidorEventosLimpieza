@@ -28,12 +28,14 @@ return function(App $app) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
         
+        
         // normalizar datos
         $min_max = $knnDB->findAllMinMaxValues();
         if (!empty($min_max)) {
             normalizar($datos, $min_max);
             normalizar($participacionesUsuario, $min_max);
         }
+        
 
         $predicciones = obtenerRecomendaciones($datos, $participacionesUsuario, 5, 25);
         return $response->withJson($eventoDB->findAllEventosIn($predicciones));
@@ -56,12 +58,14 @@ return function(App $app) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
 
+        
         // normalizar datos
         $min_max = $knnDB->findAllMinMaxValues();
         if (!empty($min_max)) {
             normalizar($datos, $min_max);
             normalizar($datosEvento, $min_max);
         }
+        
 
         $predicciones = obtenerRecomendaciones($datos, $datosEvento, 11, 15);
         if (!empty($predicciones) && reset($predicciones) == $idEvento)

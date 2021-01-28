@@ -100,8 +100,8 @@ class UsuarioDB {
 
     public function insert($email, $nombre, $contrasenia, $googleID, $fcmToken) {
         $sql = "
-            INSERT INTO ambientalista(correo, nombre_usuario, contrasenia, google_id, fcm_token)
-            VALUES (:email, :nombre, :contrasenia, :googleID, :fcmToken)
+            INSERT INTO ambientalista(correo, nombre_usuario, foto, contrasenia, google_id, fcm_token)
+            VALUES (:email, :nombre, 'no hay foto', :contrasenia, :googleID, :fcmToken)
         ";
 
         try {
@@ -114,7 +114,7 @@ class UsuarioDB {
             //echo $statement->errorInfo()[2];
             return -1;
         } catch (\PDOException $e) {
-            //echo $statement->errorInfo()[2];
+            echo $statement->errorInfo()[2];
             return -1;
         }
     }
