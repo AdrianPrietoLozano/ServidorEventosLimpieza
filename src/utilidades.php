@@ -28,7 +28,7 @@ function ejecutarFetchQuery($conexion, $query, $params, $returnError) {
 function normalizar(&$datos, $min_max) {
     array_walk($datos, function (&$value, $key) use ($min_max) {
         array_walk($value, function (&$val, $clave) use ($min_max) {
-            if ($min_max[$clave]["max"] === $min_max[$clave]["min"]) return; // validar division por zero
+                if ($min_max[$clave]["max"] === $min_max[$clave]["min"]) return; // validar division por zero
                 $val = ($val - $min_max[$clave]["min"]) / ($min_max[$clave]["max"] - $min_max[$clave]["min"]);
             });
         });
@@ -45,6 +45,29 @@ function obtenerRecomendaciones($entrenamiento, $prueba, $k, $limite = 20) {
 
     return $recomendaciones;
 }
+
+// SOLO PARA PRUEBAS
+function distancia($lat1, $lon1, $lat2, $lon2, $unit) {
+      if (($lat1 == $lat2) && ($lon1 == $lon2)) {
+        return 0;
+      }
+      else {
+        $theta = $lon1 - $lon2;
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = acos($dist);
+        $dist = rad2deg($dist);
+        $miles = $dist * 60 * 1.1515;
+        $unit = strtoupper($unit);
+
+        if ($unit == "K") {
+          return ($miles * 1.609344);
+        } else if ($unit == "N") {
+          return ($miles * 0.8684);
+        } else {
+          return $miles;
+        }
+      }
+    }
 
 function sendNotification($targets, $titulo, $mensaje){
     //API URL of FCM

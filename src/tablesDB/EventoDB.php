@@ -295,6 +295,30 @@ class EventoDB {
             return false;
         }
     }
+
+    // SOLO PARA PRUEBAS
+    public function prueba($idsEventos) {
+    	$json = array();
+        $ids = join(", ", $idsEventos);
+        
+        $select = "
+            SELECT
+                evento._id AS id_evento,
+                reporte.latitud AS latitud,
+                reporte.longitud AS longitud
+            FROM evento_limpieza AS evento
+            JOIN reporte_contaminacion AS reporte
+                ON evento.reporte_id = reporte._id AND evento._id IN ($ids)
+        ";
+
+        try {
+            $statement = $this->conexion->query($select);
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            //exit($e->getMessage());
+            return array();
+        }
+    }
 }
 
 ?>

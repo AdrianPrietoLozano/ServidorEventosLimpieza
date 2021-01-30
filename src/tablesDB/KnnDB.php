@@ -92,8 +92,8 @@ class KnnDB {
 
         $volumenesResiduos = array("Cabe en una mano" => 1,
             "Cabe en una mochila" => 2,
-            "Cabe en un automóvil" => 3,
-            "Cabe en un contenedor" => 4,
+            "Cabe en un contenedor" => 3,
+            "Cabe en un automóvil" => 4,
             "Cabe en un camión" => 5,
             "Más grande" => 6
         );
@@ -134,7 +134,9 @@ class KnnDB {
             SELECT  MAX(volumen)    AS max_volumen,       MIN(volumen)    AS min_volumen,
                     MAX(dia_semana) AS max_dia_semana,    MIN(dia_semana) AS min_dia_semana,
                     MAX(mes_anio)   AS max_mes_anio,      MIN(mes_anio)   AS min_mes_anio,
-                    MAX(hora_dia)   AS max_hora_dia,      MIN(hora_dia)   AS min_hora_dia
+                    MAX(hora_dia)   AS max_hora_dia,      MIN(hora_dia)   AS min_hora_dia,
+                    MAX(latitud)    AS max_latitud,       MIN(latitud)    AS min_latitud,
+                    MAX(longitud)   AS max_longitud,      MIN(longitud)   AS min_longitud
             FROM KNN
         ";
 
@@ -155,7 +157,9 @@ class KnnDB {
                 "volumen" => ["min" => $results["min_volumen"], "max" => $results["max_volumen"]],
                 "dia_semana" => ["min" => $results["min_dia_semana"], "max" => $results["max_dia_semana"]],
                 "mes_anio" => ["min" => $results["min_mes_anio"], "max" => $results["max_mes_anio"]],
-                "hora_dia" => ["min" => $results["min_hora_dia"], "max" => $results["max_hora_dia"]]
+                "hora_dia" => ["min" => $results["min_hora_dia"], "max" => $results["max_hora_dia"]],
+                "latitud" => ["min" => $results["min_latitud"], "max" => $results["max_latitud"]],
+                "longitud" => ["min" => $results["min_longitud"], "max" => $results["max_longitud"]]
             ];
 
             return $min_max;

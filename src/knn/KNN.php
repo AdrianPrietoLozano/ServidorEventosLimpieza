@@ -58,10 +58,12 @@ class KNN
         // ordenar de menor a mayor manteniendo asociación de índices
         asort($distancias, SORT_NUMERIC);
 
+        
         /*
         echo "<br><br>";
         echo implode(", ", array_keys($distancias));
-        echo "<br><br>";*/
+        echo "<br><br>";
+        */
         
         
         if (!$k) {
@@ -71,6 +73,7 @@ class KNN
 
         return array_keys(array_slice($distancias, 0, $k, true));
     }
+
     
     // devuelve la distancia entre dos usuarios
     private function distanciaEuclidiana(&$datos1, &$datos2)
@@ -80,11 +83,15 @@ class KNN
 
         foreach(array_keys($datos1) as &$key)
         {
+            //if ($key === "latitud" || $key === "longitud") continue;
+
             $a = pow(abs($datos1[$key] - $datos2[$key]), 2);
             
             $sumaCuadrados += $a;
         }
         
+        //return sqrt($sumaCuadrados) + $this->distancia($datos1["latitud"], $datos1["longitud"], $datos2["latitud"], $datos2["longitud"], "M");
+
         return sqrt($sumaCuadrados);
     }
     

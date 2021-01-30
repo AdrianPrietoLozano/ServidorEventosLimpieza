@@ -129,6 +129,15 @@ return function(App $app) {
     });
 }
 
+/*
+DELETE FROM participa_evento;
+DELETE FROM KNN;
+DELETE FROM evento_limpieza;
+ALTER TABLE participa_evento AUTO_INCREMENT = 1;
+ALTER TABLE KNN AUTO_INCREMENT = 1;
+ALTER TABLE evento_limpieza AUTO_INCREMENT = 1;
+
+*/
 
 
 ?>

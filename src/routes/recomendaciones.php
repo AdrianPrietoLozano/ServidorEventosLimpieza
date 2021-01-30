@@ -28,7 +28,6 @@ return function(App $app) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
         
-        
         // normalizar datos
         $min_max = $knnDB->findAllMinMaxValues();
         if (!empty($min_max)) {
@@ -36,8 +35,8 @@ return function(App $app) {
             normalizar($participacionesUsuario, $min_max);
         }
         
-
-        $predicciones = obtenerRecomendaciones($datos, $participacionesUsuario, 5, 25);
+        $k = count($participacionesUsuario) > 2 ? 5 : 10;
+        $predicciones = obtenerRecomendaciones($datos, $participacionesUsuario, $k, 25);
         return $response->withJson($eventoDB->findAllEventosIn($predicciones));
     });
 
@@ -75,6 +74,7 @@ return function(App $app) {
         return $response->withJson($eventoDB->findAllEventosIn($predicciones));
     });
 
+    // SOLO PARA PRUEBAS
     $app->get("/recomendaciones", function(Request $request, Response $response, array $args) {
         //echo date("n", $date);
         //echo "<br>";
@@ -123,6 +123,59 @@ return function(App $app) {
             return array();
         }
         */
+    });
+
+    // SOLO PARA PRUEBAS
+    $app->get("/recomendaciones/prueba/{idUsuario:[0-9]+}", function(Request $request, Response $response, array $args) {
+
+        $idUsuario = $args["idUsuario"];
+        $eventoDB = new EventoDB($this->db);
+        $knnDB = new KnnDB($this->db);
+
+        $participacionesUsuario = $knnDB->findAllEventosParticipaUsuario($idUsuario); // test
+        //$participacionesUsuario = array_slice($participacionesUsuario, 0, 8, true);
+        if (empty($participacionesUsuario)) {
+            return $response->withJson(["cerca"=>[], "medio"=>[], "lejos"=>[]]);
+        }
+
+        $datos = $knnDB->findAllDatosEventos($idUsuario); // train
+        if (empty($datos)) {
+            return $response->withJson(["cerca"=>[], "medio"=>[], "lejos"=>[]]);
+        }
+
+        // normalizar datos
+        $min_max = $knnDB->findAllMinMaxValues();
+        if (!empty($min_max)) {
+            normalizar($datos, $min_max);
+            normalizar($participacionesUsuario, $min_max);
+        }
+
+        $knn = new KNN($datos);
+        $cerca = array();
+        $medio = array();
+        $lejos = array();
+
+        foreach ($participacionesUsuario as $key => $value) {
+            $nuevasRecomendaciones = $knn->getPredicciones($value, count($datos));
+            $cerca = array_merge($cerca, array_slice($nuevasRecomendaciones, 0, 10));
+            $medio = array_merge($medio, array_slice($nuevasRecomendaciones, 10, 10));
+            $lejos = array_merge($lejos, array_slice($nuevasRecomendaciones, 20));
+        }
+
+        $cerca = array_unique($cerca, SORT_NUMERIC);
+        $medio = array_unique($medio, SORT_NUMERIC);
+        $lejos = array_unique($lejos, SORT_NUMERIC);
+
+
+        $medio = array_diff($medio, $cerca);
+        $lejos = array_diff($lejos, array_merge($cerca, $medio));
+
+        return $response->withJson([
+            "cerca" => $eventoDB->prueba($cerca),
+            "medio" => $eventoDB->prueba($medio),
+            "lejos" => $eventoDB->prueba($lejos) 
+        ]);
+
     });
 
 }
