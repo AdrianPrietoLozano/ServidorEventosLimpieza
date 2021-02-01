@@ -79,7 +79,6 @@ return function(App $app) {
         //echo date("n", $date);
         //echo "<br>";
         //echo date("H", $date);
-
         /*
         $query = "
             SELECT * from KNN
@@ -143,6 +142,7 @@ return function(App $app) {
             return $response->withJson(["cerca"=>[], "medio"=>[], "lejos"=>[]]);
         }
 
+        
         // normalizar datos
         $min_max = $knnDB->findAllMinMaxValues();
         if (!empty($min_max)) {
@@ -162,13 +162,36 @@ return function(App $app) {
             $lejos = array_merge($lejos, array_slice($nuevasRecomendaciones, 20));
         }
 
+
         $cerca = array_unique($cerca, SORT_NUMERIC);
         $medio = array_unique($medio, SORT_NUMERIC);
         $lejos = array_unique($lejos, SORT_NUMERIC);
-
-
+        
         $medio = array_diff($medio, $cerca);
         $lejos = array_diff($lejos, array_merge($cerca, $medio));
+
+        /*
+        foreach ($datos as $key => &$value) {
+            if (in_array($key, $cerca)) {
+                $value["class"] = "cerca";
+            } else if (in_array($key, $medio)) {
+                $value["class"] = "medio";
+            } else {
+                $value["class"] = "lejos";
+            }
+        }
+
+        
+        $fp = fopen("cerca_lejos.csv", "w");
+        fputcsv($fp, array_keys($datos[1]));
+
+        foreach ($datos as $key => $value) {
+            fputcsv($fp, $value);
+        }
+
+        fclose($fp);
+        //exit();
+        */
 
         return $response->withJson([
             "cerca" => $eventoDB->prueba($cerca),
