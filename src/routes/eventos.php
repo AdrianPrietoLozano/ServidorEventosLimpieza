@@ -127,6 +127,59 @@ return function(App $app) {
 
         //sendNotification()
     });
+
+    $app->post("/eventos/prueba/hector", function(Request $request, Response $response, array $args) {
+
+        if (!comprobarBodyParams($request, ["latitud", "longitud", "radio"])) {
+            return $response->withJson(["respuesta" => "0", "mensaje" => "Datos incompletos"]);
+        }
+
+        $R = 6371;  // earth's mean radius, km
+
+        $lat = $request->getParsedBodyParam("latitud");
+        $lon = $request->getParsedBodyParam("longitud");
+        $radio = $request->getParsedBodyParam("radio");
+        $maxLat = $lat + rad2deg($radio/$R);
+        $minLat = $lat - rad2deg($radio/$R);
+        $maxLon = $lon + rad2deg(asin($radio/$R) / cos(deg2rad($lat)));
+        $minLon = $lon - rad2deg(asin($radio/$R) / cos(deg2rad($lat)));
+
+        $sql = "
+        SELECT *
+        FROM (
+            SELECT E._id, REPORTE.latitud, REPORTE.longitud
+            FROM evento_limpieza AS E
+            JOIN reporte_contaminacion AS REPORTE
+                ON E.reporte_id = REPORTE._id
+            WHERE latitud BETWEEN :minLat AND :maxLat
+                AND longitud BETWEEN :minLon AND :maxLon
+            ) AS FirstCut
+        WHERE acos(sin(:lat)*sin(radians(latitud)) + cos(:lat)*cos(radians(latitud))*cos(radians(longitud)-:lon)) * :R < :radio
+        ";
+
+        $params = [
+            'lat'    => deg2rad($lat),
+            'lon'    => deg2rad($lon),
+            'minLat' => $minLat,
+            'minLon' => $minLon,
+            'maxLat' => $maxLat,
+            'maxLon' => $maxLon,
+            'radio'    => $radio,
+            'R'      => $R,
+        ];
+
+        try {
+            $statement = $this->db->prepare($sql);
+            $statement->execute($params);
+            $resultados = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $response->withJson($resultados);
+        } catch (\PDOException $e) {
+            echo $e->getMessage();
+            return $response->withJson(array());
+        }
+
+        //sendNotification()
+    });
 }
 
 /*
