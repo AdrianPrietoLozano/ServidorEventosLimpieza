@@ -6,6 +6,7 @@ use Slim\App;
 require_once __DIR__ . "/../tablesDB/UsuarioDB.php";
 require_once __DIR__ . "/../config/config.php";
 require_once __DIR__ . "/../utilidades.php";
+require_once __DIR__ . "/../authorization/Auth.php";
 
 return function(App $app) {
 
@@ -63,9 +64,15 @@ return function(App $app) {
     		return $response->withJson([$res => "4", $msg => "Ocurrió un error. Contrasenia incorrecta"]);
     	}
 
+        $token = Auth::SignIn(["id" => $json["id"]]);
+        if (is_null($token)) {
+            return $response->withJson([$res => "5", $msg => "Ocurrió un error al generar token"]);
+        }
+
     	$userDB->actualizarFCMToken($email, $fcmToken);
 
     	unset($json["contrasenia"]);
+        $json["token"] = $token;
     	$json[$res] = "1";
     	$json[$msg]= "Inicio de sesión exitoso";
 
@@ -74,9 +81,8 @@ return function(App $app) {
     });
 
     $app->post('/usuario/google/login', function(Request $request, Response $response, array $args) {
-
-    	$resultado = "0";
-    	$mensaje = "Ocurrió un error";
+        $res = "resultado";
+        $msg = "mensaje";
 
         if (!comprobarBodyParams($request, ["id_token", "fcm_token"])) {
             return $response->withJson([$res => "0", $msg => "Datos incompletos"]);
@@ -92,36 +98,34 @@ return function(App $app) {
 			$playload = array();
 		}
 
-		if ($playload) {
-			$userDB = new UsuarioDB($this->db);
-    		$userid = $playload["sub"];        
+        if (empty($playload)) {
+            return $response->withJson([$res => "0", $msg => "ID token inválido."]);
+        }
 
-    		$idInsertado = -1;
-	    	if (!$userDB->existeUsuarioGoogle($userid)) { // si no existe el usuario
-	    		$idInsertado = $userDB->insert($playload["email"], $playload["name"], null, $playload["sub"], $fcm_token); // insertar usuario
+		$userDB = new UsuarioDB($this->db);
+    	$userid = $playload["sub"];        
 
-	    		if ($idInsertado == -1) {
-	    			return $response->withJson(["resultado" => "0", "mensaje" => "Error al insertar el usuario"]);
-	    		}
+    	$idInsertado = -1;
+	    if (!$userDB->existeUsuarioGoogle($userid)) { // si no existe el usuario
+	    		$idInsertado = $userDB->insert($playload["email"], $playload["name"], null, $playload["sub"], $fcm_token);// insertar usuario
+	    	if ($idInsertado == -1) {
+	    		return $response->withJson([$res => "0", $msg => "Error al insertar el usuario."]);
 	    	}
+	    }
 
-	    	$json = $userDB->findByGoogleID($userid);
-	    	if ($json) {
-	    		$resultado = "1";
-	    		$mensaje = "Operación éxitosa";
-	    	} else {
-	    		$resultado = "0";
-	    		$mensaje = "Ocurrió un error al obtener datos de la BD.";	
-	    	}
+	    $json = $userDB->findByGoogleID($userid);
+        if (empty($json)) {
+            return $response->withJson([$res => "0", $msg => "Ocurrió un error al obtener datos de la BD."]);
+        }
 
-		} else {
-		    // invalid ID token            
-		    $resultado = "0";
-		    $mensaje = "ID token inválido";
-		}    
+        $token = Auth::SignIn(["id" => $json["id"]]);
+        if (is_null($token)) {
+            return $response->withJson([$res => "0", $msg => "Ocurrió un error al generar token"]);
+        }
 
-		$json["resultado"] = $resultado;
-		$json["mensaje"] =  $mensaje;
+        $json["token"] = $token;
+	    $json[$res] = "1";
+	    $json[$msg] = "Operación éxitosa";
 
         return $response->withJson($json);
         
@@ -156,7 +160,13 @@ return function(App $app) {
     		return $response->withJson([$res => "0", $msg => "Ocurrió un error"]);
     	}
 
+        $token = Auth::SignIn(["id" => $json["id"]]);
+        if (is_null($token)) { // si hay error debería eliminar al usuario insertado
+            return $response->withJson([$res => "0", $msg => "Ocurrió un error al generar token"]);
+        }
+
 		unset($json["contrasenia"]);
+        $json["token"] = $token;
     	$json[$res] = "1";
     	$json[$msg] = "Usuario creado exitosamente";
 

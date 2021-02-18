@@ -33,6 +33,26 @@ $app->add(function ($req, $res, $next) {
 });
 //-------
 
+
+//------------JWT-------------
+$app->add(new Tuupola\Middleware\JwtAuthentication([
+    "secure" => false,
+    "secret" => "djl34hQaSd@",
+    "ignore" => ["/usuario", "/usuario/login", "/usuario/google/login", "/usuario/registrar"],
+    "algorithm" => ["HS256"],
+    "error" => function ($response, $arguments) {
+        $data["resultado"] = "0";
+        $data["mensaje"] = $arguments["message"];
+        return $response
+            ->withHeader("Content-Type", "application/json")
+            ->getBody()->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    }
+]));
+
+
+
+//-----------
+
 $contaniner = $app->getContainer();
 $contaniner["db"] = function($c) {
   $db = $c['settings']['db'];

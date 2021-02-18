@@ -36,9 +36,10 @@ return function(App $app) {
             $participacionDB = new ParticipacionEventosDB($this->db);
             $json["evento"]["personas_unidas"] = $participacionDB->numPersonasParticipando($args["id"]);
 
-            $id_usuario = $request->getQueryParam("ambientalista_id", $default = null);
-            if ($id_usuario) {
-                $json["evento"]["usuario_participa"] = $participacionDB->participaEnEvento($args["id"], $id_usuario);
+            //$idUsuario = $request->getQueryParam("ambientalista_id", $default = null);
+            $idUsuario = $request->getAttribute("token")["data"]->id;
+            if ($idUsuario) {
+                $json["evento"]["usuario_participa"] = $participacionDB->participaEnEvento($args["id"], $idUsuario);
             }
 
             $resultado = "1";
@@ -57,22 +58,23 @@ return function(App $app) {
         $resultado = "0";
         $mensaje = "Ocurrió un error";
 
-        $queryParams = array("ambientalista_id", "reporte_id", "titulo", "fecha", "hora", "descripcion");
+        $queryParams = array("reporte_id", "titulo", "fecha", "hora", "descripcion");
 
         if (comprobarBodyParams($request, $queryParams)) {
             $eventoDB = new EventoDB($this->db);
 
-            if ($eventoDB->existeEventoConReporte($request->getParsedBodyParam($queryParams[1]))) {
+            $ambientalista_id = $request->getAttribute("token")["data"]->id;
+            $reporte_id = $request->getParsedBodyParam($queryParams[0]);
+            $titulo = $request->getParsedBodyParam($queryParams[1]);
+            $fecha = $request->getParsedBodyParam($queryParams[2]);
+            $hora = $request->getParsedBodyParam($queryParams[3]);
+            $descripcion = $request->getParsedBodyParam($queryParams[4]);
+
+            if ($eventoDB->existeEventoConReporte($reporte_id)) {
                 $resultado = "2";
                 $mensaje = "Ya existe un evento para ese reporte.";
 
             } else {
-                $ambientalista_id = $request->getParsedBodyParam($queryParams[0]);
-                $reporte_id = $request->getParsedBodyParam($queryParams[1]);
-                $titulo = $request->getParsedBodyParam($queryParams[2]);
-                $fecha = $request->getParsedBodyParam($queryParams[3]);
-                $hora = $request->getParsedBodyParam($queryParams[4]);
-                $descripcion = $request->getParsedBodyParam($queryParams[5]);
 
                 $id_evento = $eventoDB->insert($ambientalista_id, $reporte_id, $titulo,
                     $fecha, $hora, $descripcion);
@@ -86,9 +88,10 @@ return function(App $app) {
                     $knnDB = new KnnDB($this->db);
 
                     try { // insertar en tabla KNN
-                        $datosReporte = $reporteDB->find($request->getParsedBodyParam($queryParams[1]));
+                        $datosReporte = $reporteDB->find($reporte_id);
                         $insertado = $knnDB->insert($id_evento, $datosReporte["residuos"],
-                            $datosReporte["volumen"], str_replace("/", "-", $fecha), $hora);
+                            $datosReporte["volumen"], str_replace("/", "-", $fecha), $hora,
+                            $datosReporte["latitud"], $datosReporte["longitud"]);
                     } catch (Exception $e) {}
                 }
             }
@@ -101,9 +104,10 @@ return function(App $app) {
 
     });
 
-    $app->get("/eventos/usuario/{idUsuario:[0-9]+}", function(Request $request, Response $response, array $args) {
+    $app->get("/eventos/usuario", function(Request $request, Response $response, array $args) {
+        $idUsuario = $request->getAttribute("token")["data"]->id;
         $eventoDB = new EventoDB($this->db);
-        $resultado = $eventoDB->findAllEventosUsuario($args["idUsuario"]);
+        $resultado = $eventoDB->findAllEventosUsuario($idUsuario);
 
         return $response->withJson($resultado);
     });

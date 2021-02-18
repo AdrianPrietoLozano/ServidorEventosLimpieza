@@ -89,7 +89,7 @@ class ParticipacionEventosDB {
             FROM participa_evento
             JOIN evento_limpieza AS evento
                 ON participa_evento.evento_id = evento._id
-            WHERE evento_id = :idEvento AND NOW() <= evento.fecha_hora;
+            WHERE evento_id = :idEvento
         ";
 
         try {

@@ -10,10 +10,11 @@ require_once __DIR__ . "/../tablesDB/EventoDB.php";
 return function(App $app) {
 
     // obtiene todos los eventos activos donde participa el usuario
-    $app->get('/participaciones/usuario/{idUsuario:[0-9]+}', function(Request $request, Response $response, array $args) {
+    $app->get('/participaciones/usuario', function(Request $request, Response $response, array $args) {
 
+        $idUsuario = $request->getAttribute("token")["data"]->id;
         $participacionesDB = new ParticipacionEventosDB($this->db);
-        $resultado = $participacionesDB->findAllParticipacionesUsuario($args["idUsuario"]);
+        $resultado = $participacionesDB->findAllParticipacionesUsuario($idUsuario);
 
         return $response->withJson($resultado);
     });
@@ -23,11 +24,11 @@ return function(App $app) {
         $resultado = "0";
         $mensaje = "Ocurrió un error.";
 
-        if (!comprobarBodyParams($request, ["idUsuario", "idEvento"])) {
+        if (!comprobarBodyParams($request, ["idEvento"])) {
             return $response->withJson(["resultado" => "0", "mensaje" => "Datos incompletos"]);
         }
 
-        $idUsuario = $request->getParsedBodyParam("idUsuario", $default = -1);
+        $idUsuario = $request->getAttribute("token")["data"]->id;
         $idEvento = $request->getParsedBodyParam("idEvento", $default = -1);
 
         $participacionesDB = new ParticipacionEventosDB($this->db);
@@ -51,14 +52,15 @@ return function(App $app) {
     });
 
     // elimina una participacion a un evento de un usuario
-    $app->delete("/participaciones/usuario/{idUsuario:[0-9]+}/{idEvento:[0-9]+}", function(Request $request, Response $response, array $args) {
+    $app->delete("/participaciones/usuario/{idEvento:[0-9]+}", function(Request $request, Response $response, array $args) {
 
         $json = array();
         $resultado = "0";
         $mensaje = "Ocurrió un error";
 
         $participacionesDB = new ParticipacionEventosDB($this->db);
-        if ($participacionesDB->delete($args["idUsuario"], $args["idEvento"])) {
+        $idUsuario = $request->getAttribute("token")["data"]->id;
+        if ($participacionesDB->delete($idUsuario, $args["idEvento"])) {
             $resultado = "1";
             $mensaje = "Operación exitosa";            
         }
@@ -82,12 +84,12 @@ return function(App $app) {
     // inserta los puntos de los usuario que participaron en el evento. Se recibe un array de ids de usuarios.
     $app->post("/participaciones/evento/{idEvento:[0-9]+}", function(Request $request, Response $response, array $args) {
 
-    	if (!comprobarBodyParams($request, ["idUsuario", "idsParticipantes"])) {
+    	if (!comprobarBodyParams($request, ["idsParticipantes"])) {
             return $response->withJson(["resultado" => "0", "mensaje" => "Datos incompletos"]);
         }
 
         $idEvento = $args["idEvento"];
-        $idUsuario = $request->getParsedBodyParam("idUsuario");
+        $idUsuario = $request->getAttribute("token")["data"]->id;
         $idsParticipantes = $request->getParsedBodyParam("idsParticipantes");
         $puntos = 5;
 

@@ -11,12 +11,12 @@ require_once __DIR__ . "/../utilidades.php";
 
 return function(App $app) {
 
-    $app->get('/recomendaciones/usuario/{idUsuario:[0-9]+}', function(Request $request, Response $response, array $args) {
+    $app->get('/recomendaciones/usuario', function(Request $request, Response $response, array $args) {
 
-        $idUsuario = $args["idUsuario"];
         $eventoDB = new EventoDB($this->db);
         $knnDB = new KnnDB($this->db);
 
+        $idUsuario = $request->getAttribute("token")["data"]->id;
         $participacionesUsuario = $knnDB->findAllEventosParticipaUsuario($idUsuario); // test
         $participacionesUsuario = array_slice($participacionesUsuario, 0, 8, true);
         if (empty($participacionesUsuario)) {

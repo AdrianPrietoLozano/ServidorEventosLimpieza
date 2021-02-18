@@ -68,15 +68,15 @@ class KnnDB {
         }
     }
 
-    public function insert($idEvento, $residuos, $volumen, $fecha, $hora) {
+    public function insert($idEvento, $residuos, $volumen, $fecha, $hora, $latitud, $longitud) {
         
         $insert = "
             INSERT INTO KNN(evento_id, escombro, envases, carton, bolsas,
                         electricos, pilas, neumaticos, medicamentos, varios,
-                        volumen, dia_semana, mes_anio, hora_dia)
+                        volumen, dia_semana, mes_anio, hora_dia, latitud, longitud)
             VALUES (:idEvento, :escombro, :envases, :carton, :bolsas,
                     :electricos, :pilas, :neumaticos, :medicamentos, :varios,
-                    :volumen, :dia_semana, :mes_anio, :hora_dia)
+                    :volumen, :dia_semana, :mes_anio, :hora_dia, :latitud, :longitud)
             ";
 
         $nombresResiduos = array("Escombros" => "escombro",
@@ -98,7 +98,12 @@ class KnnDB {
             "Más grande" => 6
         );
 
-        $values = [":idEvento" => $idEvento, ":volumen" => $volumenesResiduos[$volumen]];
+        $values = [
+            ":idEvento" => $idEvento,
+            ":volumen" => $volumenesResiduos[$volumen],
+            ":latitud" => $latitud,
+            ":longitud" => $longitud
+        ];
 
         foreach ($nombresResiduos as $key => $residuo) {
             if (in_array($key, $residuos)) {
@@ -121,7 +126,7 @@ class KnnDB {
             return -1;
         } catch (\PDOException $e) {
             //exit($e->getMessage());
-            echo "MAL 2";
+            echo $e->getMessage();
             return -1;
         }
         

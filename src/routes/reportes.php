@@ -49,7 +49,7 @@ return function(App $app) {
         $resultado = "0";
         $mensaje = "Ocurrió un error";
 
-        $queryParams = array("latitud", "longitud", "ambientalista_id", "volumen", "residuos", "descripcion");
+        $queryParams = array("latitud", "longitud", "volumen", "residuos", "descripcion");
 
         $uploadedFile = $request->getUploadedFiles()["file"] ?? null;
         $fileName = "";
@@ -62,12 +62,12 @@ return function(App $app) {
             if (comprobarBodyParams($request, $queryParams)) {
                 $reporteDB = new reporteDB($this->db);
 
+                $ambientalistaId = $request->getAttribute("token")["data"]->id;
                 $latitud = $request->getParsedBodyParam($queryParams[0]);
                 $longitud = $request->getParsedBodyParam($queryParams[1]);
-                $ambientalistaId = $request->getParsedBodyParam($queryParams[2]);
-                $volumen = $request->getParsedBodyParam($queryParams[3]);
-                $residuos = $request->getParsedBodyParam($queryParams[4]);
-                $descripcion = $request->getParsedBodyParam($queryParams[5]);
+                $volumen = $request->getParsedBodyParam($queryParams[2]);
+                $residuos = $request->getParsedBodyParam($queryParams[3]);
+                $descripcion = $request->getParsedBodyParam($queryParams[4]);
 
                 $idReporte = $reporteDB->insert($latitud, $longitud, $ambientalistaId,
                     $fileName, $descripcion, $volumen, $residuos);
@@ -104,9 +104,10 @@ return function(App $app) {
 
     });
 
-    $app->get('/reportes/usuario/{idUsuario:[0-9]+}', function( Request $request, Response $response, array $args) {
+    $app->get('/reportes/usuario', function( Request $request, Response $response, array $args) {
+        $idUsuario = $request->getAttribute("token")["data"]->id;
         $reporteDB = new ReporteDB($this->db);
-        $resultado = $reporteDB->findAllReportesUsuario($args["idUsuario"]);
+        $resultado = $reporteDB->findAllReportesUsuario($idUsuario);
 
         return $response->withJson($resultado);
     });
