@@ -40,9 +40,9 @@ return function(App $app) {
         return $response->withJson($eventoDB->findAllEventosIn($predicciones));
     });
 
-    $app->get("/recomendaciones/evento/{idEvento:[0-9]+}/{idUsuario:[0-9]+}", function(Request $request, Response $response, array $args) {
+    $app->get("/recomendaciones/evento/{idEvento:[0-9]+}", function(Request $request, Response $response, array $args) {
 
-        $idUsuario = $args["idUsuario"];
+        $idUsuario = $request->getAttribute("token")["data"]->id;
         $idEvento = $args["idEvento"];
         $eventoDB = new EventoDB($this->db);
         $knnDB = new KnnDB($this->db);
@@ -57,7 +57,6 @@ return function(App $app) {
             return $response->withJson($eventoDB->findAllEventosPopulares($idUsuario));
         }
 
-        
         // normalizar datos
         $min_max = $knnDB->findAllMinMaxValues();
         if (!empty($min_max)) {
@@ -65,8 +64,7 @@ return function(App $app) {
             normalizar($datosEvento, $min_max);
         }
         
-
-        $predicciones = obtenerRecomendaciones($datos, $datosEvento, 11, 15);
+        $predicciones = obtenerRecomendaciones($datos, $datosEvento, 6, 6);
         if (!empty($predicciones) && reset($predicciones) == $idEvento)
             array_shift($predicciones); // eliminar el primer elemento porque es el mismo que idEvento
 

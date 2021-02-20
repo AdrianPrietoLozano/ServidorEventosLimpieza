@@ -60,6 +60,7 @@ class ParticipacionEventosDB {
 
             return -1;
         } catch (\PDOException $e) {
+            //echo $e->getMessage();
             return -1;
         }
     }
@@ -77,8 +78,6 @@ class ParticipacionEventosDB {
             $statement->execute([":idUsuario" => $idUsuario, ":idEvento" => $idEvento]);
             return $statement->rowCount() > 0;
         } catch (\PDOException $e) {
-            echo $e->getMessage();
-
             return false;
         }
     }
