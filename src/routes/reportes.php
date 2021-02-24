@@ -5,6 +5,7 @@ use Slim\Http\UploadedFile;
 use Slim\App;
 
 require_once  __DIR__ . "/../tablesDB/ReporteDB.php";
+require_once __DIR__ . "/../utilidades.php";
 //require_once __DIR__ . "/../actualizarKNN.php";
 
 return function(App $app) {
@@ -60,7 +61,7 @@ return function(App $app) {
             $fileName = $directory . DIRECTORY_SEPARATOR . $nombreBase . "." . $extension;
             $uri = $request->getUri();
             if (comprobarBodyParams($request, $queryParams)) {
-                $reporteDB = new reporteDB($this->db);
+                $reporteDB = new ReporteDB($this->db);
 
                 $ambientalistaId = $request->getAttribute("token")["data"]->id;
                 $latitud = $request->getParsedBodyParam($queryParams[0]);

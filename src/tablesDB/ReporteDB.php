@@ -204,6 +204,19 @@ class ReporteDB {
         }
     }
 
+    public function reporteTieneEvento($idReporte) {
+        $sql = "SELECT * FROM limpiezas WHERE reporte_id = :idReporte";
+
+        try {
+            $statement = $this->conexion->prepare($sql);
+            $statement->execute([":idReporte" => $idReporte]);
+            return $statement->fetchColumn() > 0;
+        } catch (\PDOException $e) {
+            //exit($e->getMessage());
+            return false;
+        }
+    }    
+
     private function econtrarIdVolumen($volumen) {
         $sql = "SELECT _id AS id FROM volumen_residuo WHERE volumen = :volumen";
         

@@ -33,7 +33,7 @@ $app->add(function ($req, $res, $next) {
 });
 //-------
 
-
+/*
 //------------JWT-------------
 $app->add(new Tuupola\Middleware\JwtAuthentication([
     "secure" => false,
@@ -48,7 +48,7 @@ $app->add(new Tuupola\Middleware\JwtAuthentication([
             ->getBody()->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
     }
 ]));
-
+*/
 
 
 //-----------
@@ -74,6 +74,7 @@ $routesParticipaciones = require __DIR__ . '/../src/routes/participaciones.php';
 $routesRecomendaciones = require __DIR__ . '/../src/routes/recomendaciones.php';
 $routesUsuario = require __DIR__ . '/../src/routes/usuario.php';
 $routesBusquedas = require __DIR__ . '/../src/routes/busquedas.php';
+$routesLimpiezas = require __DIR__ . '/../src/routes/limpiezas.php';
 
 $routesEventos($app);
 $routesReportes($app);
@@ -81,6 +82,7 @@ $routesParticipaciones($app);
 $routesRecomendaciones($app);
 $routesUsuario($app);
 $routesBusquedas($app);
+$routesLimpiezas($app);
 
 
 

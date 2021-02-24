@@ -7,6 +7,7 @@ require_once  __DIR__ . "/../tablesDB/EventoDB.php";
 require_once  __DIR__ . "/../tablesDB/ReporteDB.php";
 require_once  __DIR__ . "/../tablesDB/KnnDB.php";
 require_once  __DIR__ . "/../tablesDB/ParticipacionEventosDB.php";
+require_once __DIR__ . "/../utilidades.php";
 
 return function(App $app) {
 
