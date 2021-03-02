@@ -50,7 +50,7 @@ return function(App $app) {
         $json["estatus"]["resultado"] = $resultado;
         $json["estatus"]["mensaje"] = $mensaje;
 
-        return $response->withJson($json); 
+        return $response->withJson($json);
     });
 
 
@@ -125,7 +125,7 @@ return function(App $app) {
             $targets = $statement->fetchAll(PDO::FETCH_COLUMN);
 
             sendNotification($targets, "Prueba", "prueba");
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             //echo $statement->errorInfo()[2];
             echo "error";
         }

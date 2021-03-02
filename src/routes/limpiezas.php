@@ -16,16 +16,16 @@ return function(App $app) {
 
     	// comprobar que esten los datos necesarios
     	if (!comprobarBodyParams($request, ["reporte_id", "descripcion"])) {
-    		return $response->withJson([$res => "0", $msg => "Datos incompletos"]);
+    		return $response->withJson(["estatus" => [$res => "0", $msg => "Datos incompletos"]]);
     	}
 
     	// comprobar la imagen
     	$uploadedFile = $request->getUploadedFiles()["file"] ?? null;
     	if ($uploadedFile === null || empty($uploadedFile) || $uploadedFile->getError() != UPLOAD_ERR_OK) {
-    		return $response->withJson([$res => "0", $msg => "Error en la imagen"]);
+    		return $response->withJson(["estatus" => [$res => "0", $msg => "Error en la imagen"]]);
     	}
 
-    	$idUsuario = 12;//$request->getAttribute("token")["data"]->id;
+    	$idUsuario = $request->getAttribute("token")["data"]->id;
     	$idReporte = $request->getParsedBodyParam("reporte_id");
         $descripcion = $request->getParsedBodyParam("descripcion");
     	
@@ -33,7 +33,7 @@ return function(App $app) {
     	$reporteDB = new ReporteDB($this->db);
     	$eventoDB = new EventoDB($this->db);
     	if ($reporteDB->reporteTieneLimpieza($idReporte) || $eventoDB->existeEventoConReporte($idReporte)) {
-    		return $response->withJson([$res => "0", $msg => "Error. Ya existe un evento o limpieza asociado con el reporte"]);
+    		return $response->withJson(["estatus" => [$res => "0", $msg => "Error. Ya existe un evento o limpieza asociado con el reporte"]]);
     	}
 
     	// crear nombre para la imagen
@@ -46,7 +46,7 @@ return function(App $app) {
         $limpiezaDB = new LimpiezaDB($this->db);
         $idLimpieza = $limpiezaDB->insert($idReporte, $idUsuario, $descripcion, $fileName);
         if ($idLimpieza === -1) {
-        	return $response->withJson([$res => "0", $msg => "Error al insertar la limpieza."]);
+        	return $response->withJson(["estatus" => [$res => "0", $msg => "Error al insertar la limpieza."]]);
         }
 
         // mover la imagen
@@ -55,11 +55,17 @@ return function(App $app) {
         } catch (Exception $e) {
         	//echo $e->getMessage();
         	$limpiezaDB->delete($idLimpieza);
-        	return $response->withJson([$res => "0", $msg => "Error al subir imagen"]);
+        	return $response->withJson(["estatus" => [$res => "0", $msg => "Error al subir imagen"]]);
         }
 
         // retornar mensaje de éxito
-        return $response->withJson([$res => "1", $msg => "Limpieza insertada correctamente"]);
+        return $response->withJson([
+            "estatus" => [
+                $res => "1",
+                $msg => "Limpieza insertada correctamente"
+            ],
+            "id_limpieza" => $idLimpieza
+        ]);
 
     });
 }

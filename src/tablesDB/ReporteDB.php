@@ -17,9 +17,8 @@ class ReporteDB {
 
         try {
             $statement = $this->conexion->query($sql);
-            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $results;
-        } catch (\PDOException $e) {
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             return array();
         }
@@ -43,12 +42,12 @@ class ReporteDB {
         try {
             $statement = $this->conexion->prepare($sql);
             $statement->execute([":idReporte" => $id]);
-            $results = $statement->fetch(\PDO::FETCH_ASSOC);
+            $results = $statement->fetch(PDO::FETCH_ASSOC);
             if ($results) {
                 $results["residuos"] = $this->obtenerResiduosReporte($id);
             }   
             return $results;
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             return array();
         }
@@ -87,7 +86,7 @@ class ReporteDB {
             //echo $statement->errorInfo()[2];
             return $idReporteCreado;
 
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             if ($this->conexion->inTransaction()) {
                 $this->conexion->rollback();
@@ -114,7 +113,7 @@ class ReporteDB {
 
             return $statement->rowCount() > 0;
 
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             if ($this->conexion->inTransaction()) {
                 $this->conexion->rollback();
@@ -139,9 +138,8 @@ class ReporteDB {
         try {
             $statement = $this->conexion->prepare($sql);
             $statement->execute([":idUsuario" => $idUsuario]);
-            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $results;
-        } catch (\PDOException $e) {
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             return array();
         }
@@ -162,7 +160,7 @@ class ReporteDB {
 
         try {
             return $this->conexion->exec($sql) > 0;
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             return false;
         }
@@ -182,9 +180,8 @@ class ReporteDB {
         try {
             $statement = $this->conexion->prepare($sql);
             $statement->execute([":idReporte" => $idReporte]);
-            $results = array_column($statement->fetchAll(\PDO::FETCH_OBJ), "tipo");
-            return $results;
-        } catch (\PDOException $e) {
+            return array_column($statement->fetchAll(PDO::FETCH_OBJ), "tipo");
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             return array();
         }
@@ -198,7 +195,7 @@ class ReporteDB {
             $statement = $this->conexion->prepare($sql);
             $statement->execute([":idReporte" => $idReporte]);
             return $statement->fetchColumn() > 0;
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             return false;
         }
@@ -211,7 +208,7 @@ class ReporteDB {
             $statement = $this->conexion->prepare($sql);
             $statement->execute([":idReporte" => $idReporte]);
             return $statement->fetchColumn() > 0;
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             return false;
         }
@@ -223,12 +220,12 @@ class ReporteDB {
         try {
             $statement = $this->conexion->prepare($sql);
             $statement->execute([":volumen" => $volumen]);
-            $resultado = $statement->fetch(\PDO::FETCH_ASSOC);
+            $resultado = $statement->fetch(PDO::FETCH_ASSOC);
             if ($resultado) {
                 return $resultado["id"];
             }
             return 1; // default
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             //exit($e->getMessage());
             return 1;
         }
