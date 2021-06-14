@@ -21,6 +21,7 @@ function ejecutarFetchQuery($conexion, $query, $params, $returnError) {
         $statement->execute($params);
         return $statement->fetch(\PDO::FETCH_ASSOC);
     } catch (\PDOException $e) {
+        echo $e;
         return $returnError;
     }
 }

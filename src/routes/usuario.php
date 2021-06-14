@@ -172,6 +172,21 @@ return function(App $app) {
 
     	return $response->withJson($json);
     });
+
+    $app->get('/usuario/ranking', function(Request $request, Response $response, array $args) {
+        $json = array();
+        $resultado = "0";
+        $mensaje = "Ocurrió un error";
+
+        $userDB = new UsuarioDB($this->db);
+        $res = $userDB->getRanking(15);
+
+        $json["ranking"] = $res;
+        $json["estatus"]["resultado"] = "1";
+        $json["estatus"]["mensaje"] = "Operación exitosa";
+
+        return $response->withJson($json);
+    });
 }
 
 

@@ -19,6 +19,7 @@ $config['db']['dbname'] = DBNAME;
 $app = new \Slim\App(['settings' => $config]);
 
 
+/*
 //------- CORS ----
 $app->options('/{routes:.+}', function ($request, $response, $args) {
     return $response;
@@ -32,6 +33,7 @@ $app->add(function ($req, $res, $next) {
             ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
 });
 //-------
+*/
 
 
 //------------JWT-------------
@@ -48,7 +50,6 @@ $app->add(new Tuupola\Middleware\JwtAuthentication([
             ->getBody()->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
     }
 ]));
-
 
 
 //-----------
@@ -85,13 +86,14 @@ $routesBusquedas($app);
 $routesLimpiezas($app);
 
 
-
+/*
 //cors
 $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function ($request, $response) {
     throw new HttpNotFoundException($request);
 });
-
+*/
 
 $app->run();
 
 ?>
+

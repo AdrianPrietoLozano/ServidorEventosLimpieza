@@ -185,6 +185,28 @@ class UsuarioDB {
             return false;
         }
     }
+
+    public function getRanking($numResultados) {
+        $sql = "
+            SELECT _id AS id, nombre_usuario AS nombre, puntos, FIND_IN_SET( puntos, (
+                SELECT GROUP_CONCAT( puntos
+                ORDER BY puntos DESC ) 
+                FROM ambientalista )
+                ) AS rank
+            FROM ambientalista
+            ORDER BY rank
+            LIMIT 15
+        ";
+
+        try {
+            $statement = $this->conexion->query($sql);
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            //exit($e->getMessage());
+            return array();
+        }
+    }
 }
 
 ?>
