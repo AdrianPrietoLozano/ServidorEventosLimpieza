@@ -91,6 +91,7 @@ $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function ($
     throw new HttpNotFoundException($request);
 });
 
+
 $app->run();
 
 ?>
