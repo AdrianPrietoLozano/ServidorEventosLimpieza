@@ -178,10 +178,13 @@ return function(App $app) {
         $resultado = "0";
         $mensaje = "Ocurrió un error";
 
+        $ambientalista_id = $request->getAttribute("token")["data"]->id;
         $userDB = new UsuarioDB($this->db);
-        $res = $userDB->getRanking(15);
+        $rankings = $userDB->getRanking(15);
+        $ranking_usuario = $userDB->getRankingUsuario($ambientalista_id);
 
-        $json["ranking"] = $res;
+        $json["ranking"] = $rankings;
+        $json["ranking_usuario"] = $ranking_usuario;
         $json["estatus"]["resultado"] = "1";
         $json["estatus"]["mensaje"] = "Operación exitosa";
 

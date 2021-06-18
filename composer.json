@@ -5,6 +5,7 @@
         "firebase/php-jwt": "^5.2",
         "tuupola/slim-jwt-auth": "^3.5",
         "ext-pdo": "*",
-        "ext-json": "*"
+        "ext-json": "*",
+        "php-ds/php-ds": "^1.3"
     }
 }

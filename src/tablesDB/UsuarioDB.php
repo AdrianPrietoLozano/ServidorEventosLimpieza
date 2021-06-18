@@ -207,6 +207,20 @@ class UsuarioDB {
             return array();
         }
     }
+
+    public function getRankingUsuario($usuarioId) {
+        $sql = "
+            SELECT _id AS id, nombre_usuario AS nombre, puntos, FIND_IN_SET( puntos, (
+                SELECT GROUP_CONCAT( puntos
+                ORDER BY puntos DESC ) 
+                FROM ambientalista )
+                ) AS rank
+            FROM ambientalista
+            WHERE _id = :usuarioId
+        ";
+
+        return ejecutarFetchQuery($this->conexion, $sql, [":usuarioId" => $usuarioId], array());
+    }
 }
 
 ?>

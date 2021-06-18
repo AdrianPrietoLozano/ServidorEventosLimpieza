@@ -8,6 +8,8 @@ require_once  __DIR__ . "/../tablesDB/ReporteDB.php";
 require_once  __DIR__ . "/../tablesDB/KnnDB.php";
 require_once  __DIR__ . "/../tablesDB/ParticipacionEventosDB.php";
 require_once __DIR__ . "/../utilidades.php";
+require_once __DIR__ . "/../dijkstra/dijkstra.php";
+
 
 return function(App $app) {
 
@@ -132,6 +134,99 @@ return function(App $app) {
 
         //sendNotification()
     });
+
+    $app->post("/eventos/dijkstra", function(Request $request, Response $response, array $args) {
+        // 1. Obtener los eventos que esten a una distancia de $km/2 de la ubicación del usuario
+        // 2. Conectar los eventos que esten a $0.5mk de distancia y su peso será los puntos. De esta forma se tiene el grafo
+        // 3. Aplicar Dijkstra
+        // 4. Retornar resultado
+
+        if (!comprobarBodyParams($request, ["latitud", "longitud", "puntos"])) {
+            return $response->withJson(["estatus" => ["resultado" => "0", "mensaje" => "Datos incompletos"]]);
+        }
+
+        // ----- 1 ------
+        $lat = $request->getParsedBodyParam("latitud");
+        $lon = $request->getParsedBodyParam("longitud");
+        $puntos = $request->getParsedBodyParam("puntos");
+        $km = 5;
+
+        $eventoDB = new EventoDB($this->db);
+        $eventos = $eventoDB->getEventosCercanos($lat, $lon, $km / 2);
+        $eventos["S"] = ["latitud" => $lat, "longitud" => $lon];
+        //print_r($eventos);
+        
+
+        // ----- 2 ------
+        $grafo = array();
+
+        foreach ($eventos as $clave => &$e) {
+            $grafo[$clave] = array();
+            foreach ($eventos as $clave2 => &$e2) {
+                if ($clave == $clave2) continue;
+                
+                $dis = distancia($e["latitud"], $e["longitud"],
+                        $e2["latitud"], $e2["longitud"], "k");
+
+                if ($dis >= 0.3 && $dis <= 0.7) {
+                    if ($clave2 == "S") {
+                        array_push($grafo[$clave], [$clave2, $dis, (int)$e["puntos"]]);
+                    } else {
+                        array_push($grafo[$clave], [$clave2, $dis, (int)$e2["puntos"]]);
+                    }
+                }
+            }
+        }
+
+        
+        if (count($grafo["S"]) == 0) {
+            return $response->withJson(["estatus" => ["resultado" => "0", "mensaje" => "No se econtró una ruta"]]);
+        }
+
+        //-------- 3 ---------
+        list($distancias, $prev) = dijkstra($grafo, "S");
+
+        //print_r($distancias);
+        //print_r($prev);
+
+        $mejorEvento = ["idEvento" => null, "distancia" => INF];
+        foreach ($distancias as $clave => $dis) {
+            if ($dis[1] >= $puntos && $dis[0] < $mejorEvento["distancia"]) {
+                $mejorEvento = ["idEvento" => $clave, "distancia" => $dis[0]];
+            }
+        }
+
+        // TODO: esto está mal
+        if ($mejorEvento["idEvento"] == null) {
+            $max_key = array_search(max($distancias), $distancias);
+            $mejorEvento = ["idEvento" => $max_key,
+                            "distancia" => $distancias[$max_key][1]];
+        }
+
+        //print_r($mejorEvento);
+
+        // ----- construir ruta -----
+        $ruta = array();
+        $idEvento = $mejorEvento["idEvento"];
+        while ($idEvento != "S" && $idEvento != null) {
+            array_unshift($ruta, $idEvento);
+            $idEvento = $prev[$idEvento];
+        }
+
+        //print_r($ruta);
+
+        $rutaEventos = array();
+        foreach ($ruta as $evento) {
+            $rutaEventos[] = ["id" => $evento] + $eventos[$evento];
+        }
+
+        return $response->withJson(["ruta" => $rutaEventos,
+                                    "estatus" => ["resultado" => "1", "mensaje" => "Todo correcto"]]);
+
+
+    });
+
+
 
     $app->post("/eventos/prueba/hector", function(Request $request, Response $response, array $args) {
 

@@ -319,6 +319,49 @@ class EventoDB {
             return array();
         }
     }
+
+    public function getEventosCercanos($lat, $lon, $radio) {
+        $R = 6371;  // earth's mean radius, km
+
+        $maxLat = $lat + rad2deg($radio/$R);
+        $minLat = $lat - rad2deg($radio/$R);
+        $maxLon = $lon + rad2deg(asin($radio/$R) / cos(deg2rad($lat)));
+        $minLon = $lon - rad2deg(asin($radio/$R) / cos(deg2rad($lat)));
+
+        $sql = "
+        SELECT *
+        FROM (
+            SELECT E._id AS id, REPORTE.latitud, REPORTE.longitud, E.puntos
+            FROM evento_limpieza AS E
+            JOIN reporte_contaminacion AS REPORTE
+                ON E.reporte_id = REPORTE._id
+            WHERE latitud BETWEEN :minLat AND :maxLat
+                AND longitud BETWEEN :minLon AND :maxLon
+            ) AS FirstCut
+        WHERE acos(sin(:lat)*sin(radians(latitud)) + cos(:lat)*cos(radians(latitud))*cos(radians(longitud)-:lon)) * :R < :radio
+        ";
+
+        $params = [
+            'lat'    => deg2rad($lat),
+            'lon'    => deg2rad($lon),
+            'minLat' => $minLat,
+            'minLon' => $minLon,
+            'maxLat' => $maxLat,
+            'maxLon' => $maxLon,
+            'radio'  => $radio,
+            'R'      => $R,
+        ];
+
+        try {
+            $statement = $this->conexion->prepare($sql);
+            $statement->execute($params);
+            $resultados = $statement->fetchAll(\PDO::FETCH_UNIQUE|\PDO::FETCH_ASSOC);
+            return $resultados;
+        } catch (\PDOException $e) {
+            //echo $e->getMessage();
+            return array();
+        }
+    }
 }
 
 ?>
