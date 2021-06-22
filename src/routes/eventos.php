@@ -153,9 +153,9 @@ return function(App $app) {
         }*/
 
         // ----- 1 ------
-        $lat = 20.659698; //$request->getParsedBodyParam("latitud");
-        $lon = -103.349609; //$request->getParsedBodyParam("longitud");
-        $puntos = 50; //$request->getParsedBodyParam("puntos");
+        $lat = $request->getParsedBodyParam("latitud");
+        $lon = $request->getParsedBodyParam("longitud");
+        $puntos = $request->getParsedBodyParam("puntos");
         $km = 5;
 
         $eventoDB = new EventoDB($this->db);
