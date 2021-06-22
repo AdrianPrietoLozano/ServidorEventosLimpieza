@@ -98,14 +98,14 @@ class EventoDB {
         }
     }
 
-    public function insert($id_usuario, $reporte_id, $titulo, $fecha, $hora, $descripcion) {
+    public function insert($id_usuario, $reporte_id, $titulo, $fecha, $hora, $descripcion, $puntos) {
         $fecha_hora = $fecha." ".$hora;
 
         $query = "
         INSERT INTO evento_limpieza(ambientalista_id, titulo,
-                                    reporte_id, fecha_hora, descripcion)
+                                    reporte_id, fecha_hora, descripcion, puntos)
         VALUES (:id_usuario, :titulo, :reporte_id,
-                STR_TO_DATE(:fecha_hora, '%d/%m/%Y %H:%i'), :descripcion)
+                STR_TO_DATE(:fecha_hora, '%d/%m/%Y %H:%i'), :descripcion, :puntos)
         ";
 
         try {
@@ -114,7 +114,8 @@ class EventoDB {
                 ":titulo" => $titulo,
                 ":reporte_id" => $reporte_id,
                 ":fecha_hora" => $fecha_hora,
-                ":descripcion" => $descripcion
+                ":descripcion" => $descripcion,
+                ":puntos" => $puntos
             );
             if ($statement->execute($valores)) {
                 return $this->conexion->lastInsertId();
@@ -337,6 +338,7 @@ class EventoDB {
                 ON E.reporte_id = REPORTE._id
             WHERE latitud BETWEEN :minLat AND :maxLat
                 AND longitud BETWEEN :minLon AND :maxLon
+                AND NOW() <= E.fecha_hora
             ) AS FirstCut
         WHERE acos(sin(:lat)*sin(radians(latitud)) + cos(:lat)*cos(radians(latitud))*cos(radians(longitud)-:lon)) * :R < :radio
         ";

@@ -6,10 +6,10 @@
 
 function dijkstra($grafo, $inicio) {
 	$distancias = array();
-	$prev = array();
+	$padre = array();
 	foreach (array_keys($grafo) as $key) {
   		$distancias[$key] = [INF, 0];
-  		$prev[$key] = null;
+  		$padre[$key] = null;
 	}
 
 	$distancias[$inicio] = [0, 0];
@@ -32,16 +32,13 @@ function dijkstra($grafo, $inicio) {
 			if ($alt < $distancias[$v][0]) {
 				$distancias[$v][0] = $alt;
 				$distancias[$v][1] = $distancias[$u][1] + $puntos;
-				$prev[$v] = $u;
+				$padre[$v] = $u;
 				$pq->push([$v, $alt], $alt);
 			}
 		}
 	}
 
-	//print_r($distancias);
-	//print_r($prev);
-	return array($distancias, $prev);
-
+	return array($distancias, $padre);
 }
 
 ?>

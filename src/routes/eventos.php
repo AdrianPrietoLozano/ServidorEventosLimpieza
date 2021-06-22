@@ -72,6 +72,7 @@ return function(App $app) {
             $fecha = $request->getParsedBodyParam($queryParams[2]);
             $hora = $request->getParsedBodyParam($queryParams[3]);
             $descripcion = $request->getParsedBodyParam($queryParams[4]);
+            $puntos = rand(5, 20);
 
             if ($eventoDB->existeEventoConReporte($reporte_id)) {
                 $resultado = "2";
@@ -80,7 +81,7 @@ return function(App $app) {
             } else {
 
                 $id_evento = $eventoDB->insert($ambientalista_id, $reporte_id, $titulo,
-                    $fecha, $hora, $descripcion);
+                    $fecha, $hora, $descripcion, $puntos);
 
                 if ($id_evento != -1) {
                     $resultado = "1";
@@ -95,6 +96,11 @@ return function(App $app) {
                         $insertado = $knnDB->insert($id_evento, $datosReporte["residuos"],
                             $datosReporte["volumen"], str_replace("/", "-", $fecha), $hora,
                             $datosReporte["latitud"], $datosReporte["longitud"]);
+                        $idUsuario = $request->getAttribute("token")["data"]->id;
+
+                        // hacer que el ambientalista participe en el evento
+                        $participacionesDB = new ParticipacionEventosDB($this->db);
+                        $participacionesDB->insert($ambientalista_id, $id_evento);
                     } catch (Exception $e) {}
                 }
             }
@@ -141,20 +147,22 @@ return function(App $app) {
         // 3. Aplicar Dijkstra
         // 4. Retornar resultado
 
+        /*
         if (!comprobarBodyParams($request, ["latitud", "longitud", "puntos"])) {
             return $response->withJson(["estatus" => ["resultado" => "0", "mensaje" => "Datos incompletos"]]);
-        }
+        }*/
 
         // ----- 1 ------
-        $lat = $request->getParsedBodyParam("latitud");
-        $lon = $request->getParsedBodyParam("longitud");
-        $puntos = $request->getParsedBodyParam("puntos");
+        $lat = 20.659698; //$request->getParsedBodyParam("latitud");
+        $lon = -103.349609; //$request->getParsedBodyParam("longitud");
+        $puntos = 50; //$request->getParsedBodyParam("puntos");
         $km = 5;
 
         $eventoDB = new EventoDB($this->db);
         $eventos = $eventoDB->getEventosCercanos($lat, $lon, $km / 2);
         $eventos["S"] = ["latitud" => $lat, "longitud" => $lon];
         //print_r($eventos);
+        //exit();
         
 
         // ----- 2 ------
@@ -168,7 +176,7 @@ return function(App $app) {
                 $dis = distancia($e["latitud"], $e["longitud"],
                         $e2["latitud"], $e2["longitud"], "k");
 
-                if ($dis >= 0.3 && $dis <= 0.7) {
+                if ($dis <= 0.7) {
                     if ($clave2 == "S") {
                         array_push($grafo[$clave], [$clave2, $dis, (int)$e["puntos"]]);
                     } else {
@@ -178,29 +186,33 @@ return function(App $app) {
             }
         }
 
-        
+        //print_r($grafo);
+
+        /*
         if (count($grafo["S"]) == 0) {
             return $response->withJson(["estatus" => ["resultado" => "0", "mensaje" => "No se econtró una ruta"]]);
-        }
+        }*/
 
         //-------- 3 ---------
         list($distancias, $prev) = dijkstra($grafo, "S");
 
-        //print_r($distancias);
-        //print_r($prev);
-
         $mejorEvento = ["idEvento" => null, "distancia" => INF];
+        $mayorPuntos = ["idEvento" => null, "puntos" => -INF];
         foreach ($distancias as $clave => $dis) {
             if ($dis[1] >= $puntos && $dis[0] < $mejorEvento["distancia"]) {
                 $mejorEvento = ["idEvento" => $clave, "distancia" => $dis[0]];
             }
+
+            if ($dis[1] > $mayorPuntos["puntos"])
+                $mayorPuntos = ["idEvento" => $clave, "puntos" => $dis[1]];
         }
 
         // TODO: esto está mal
         if ($mejorEvento["idEvento"] == null) {
-            $max_key = array_search(max($distancias), $distancias);
-            $mejorEvento = ["idEvento" => $max_key,
-                            "distancia" => $distancias[$max_key][1]];
+            $mejorEvento = $mayorPuntos;
+            //$max_key = array_search(max($distancias), $distancias);
+            //$mejorEvento = ["idEvento" => $max_key,
+                            //"distancia" => $distancias[$max_key][1]];
         }
 
         //print_r($mejorEvento);

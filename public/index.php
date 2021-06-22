@@ -78,6 +78,7 @@ $routesRecomendaciones = require __DIR__ . '/../src/routes/recomendaciones.php';
 $routesUsuario = require __DIR__ . '/../src/routes/usuario.php';
 $routesBusquedas = require __DIR__ . '/../src/routes/busquedas.php';
 $routesLimpiezas = require __DIR__ . '/../src/routes/limpiezas.php';
+$routesDijkstra = require __DIR__ . '/../src/routes/dijkstra.php';
 
 $routesEventos($app);
 $routesReportes($app);
@@ -86,6 +87,7 @@ $routesRecomendaciones($app);
 $routesUsuario($app);
 $routesBusquedas($app);
 $routesLimpiezas($app);
+$routesDijkstra($app);
 
 
 /*
